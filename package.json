@@ -1,5 +1,11 @@
 {
 	"name": "@habitica-bot/monorepo",
+	"scripts": {
+		"build": "pnpm recursive run build"
+	},
+	"dependencies": {
+		"pm2": "^5.2.2"
+	},
 	"devDependencies": {
 		"@types/node": "^18.11.18",
 		"lionconfig": "^2.2.15",

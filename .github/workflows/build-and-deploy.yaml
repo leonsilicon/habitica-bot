@@ -1,0 +1,64 @@
+name: Remote ssh command
+on: [push]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build App
+        run: pnpm build
+
+      - name: Upload built files
+        uses: burnett01/rsync-deployments@5.2.1
+        with:
+          switches: -vhra --delete --include='**.gitignore' --exclude='/.git' --filter=':- .gitignore' --delete-after
+          path: ${{ github.workspace }}
+          remote_path: /home/ubuntu/projects/habitica-bot
+          remote_host: '3.237.64.131'
+          remote_user: ubuntu
+          remote_key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: '3.237.64.131'
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/projects/habitica-bot
+            pnpm install --prod
+            pnpm exec pm2 start ecosystem.config.cjs
+            pnpm exec pm2 reload ecosystem.config.cjs
