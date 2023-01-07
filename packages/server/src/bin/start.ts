@@ -79,6 +79,10 @@ interface HabiticaRequest {
 	webhookType: string
 }
 
+const notificationsChannelId = '1061299980792496202'
+const proofChannelId = '1061343393881530448'
+const leondreamedId = '1022267596382408755'
+
 app.post('/webhook', async (request, reply) => {
 	console.log('Webhook called with:', request.body)
 	const data = request.body as HabiticaRequest
@@ -114,7 +118,7 @@ app.post('/webhook', async (request, reply) => {
 		)
 
 	const notificationsChannel = await client.channels.fetch(
-		'1061299980792496202'
+		notificationsChannelId
 	)
 	invariant(notificationsChannel?.type === ChannelType.GuildText)
 
@@ -123,10 +127,10 @@ app.post('/webhook', async (request, reply) => {
 	if (task.notes.includes('Needs Proof:')) {
 		const proofDescription = /\*\*Needs Proof:\*\* (.*)/.exec(task.notes)?.[1]
 		invariant(proofDescription !== undefined, 'missing proof item')
-		const proofChannel = await client.channels.fetch('1061343393881530448')
+		const proofChannel = await client.channels.fetch(proofChannelId)
 		invariant(proofChannel?.type === ChannelType.GuildText)
 		await proofChannel.send(
-			`<@1022267596382408755>, please send a proof for your task _${task.text}_ (${proofDescription})`
+			`<@${leondreamedId}>, please send a proof for your task _${task.text}_ (${proofDescription})`
 		)
 	}
 
