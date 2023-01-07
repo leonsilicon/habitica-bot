@@ -1,4 +1,4 @@
-name: Remote ssh command
+name: Build and Deploy
 on: [push]
 
 jobs:
@@ -58,9 +58,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            bash -c "
-              source ~/.bashrc
-              cd ~/projects/habitica-bot
-              pnpm install --prod
-              pnpm exec pm2 restart ecosystem.config.cjs
-            "
+            export PNPM_HOME="/home/ubuntu/.local/share/pnpm"
+            export PATH="$PNPM_HOME:$PATH"
+            cd ~/projects/habitica-bot
+            pnpm install --prod
+            pnpm exec pm2 restart ecosystem.config.cjs
