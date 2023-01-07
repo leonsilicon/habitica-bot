@@ -84,21 +84,28 @@ app.post('/webhook', async (request, reply) => {
 	const data = request.body as HabiticaRequest
 	const { task } = data
 
+	let title: string
 	let description: string
 	if (data.direction === 'up') {
+		title = 'Task Completed'
 		description = 'A task has been checked off!'
 	} else {
-		description = 'A task has been unchecked.'
+		title = 'Task Undone'
+		description = 'A task has been unchecked!'
 	}
 
 	const embed = new EmbedBuilder()
 		.setColor('Orange')
-		.setTitle('Habitica Event')
+		.setTitle(title)
 		.setDescription(description)
 		.addFields(
 			{
-				name: 'Task Name',
+				name: 'Name',
 				value: task.text,
+			},
+			{
+				name: 'Notes',
+				value: task.notes
 			},
 			{
 				name: 'Date',
