@@ -1,1 +1,1 @@
-# habitica-discord
+# habitica-bot

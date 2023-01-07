@@ -1,13 +1,13 @@
 {
-	"name": "@habitica-discord/server",
+	"name": "@habitica-bot/server",
 	"version": "0.0.0",
 	"description": "",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/leondreamed/habitica-discord.git"
+		"url": "https://github.com/leondreamed/habitica-bot.git"
 	},
-	"homepage": "https://github.com/leondreamed/habitica-discord#readme",
+	"homepage": "https://github.com/leondreamed/habitica-bot#readme",
 	"author": {
 		"name": "Leon Si",
 		"email": "leon@leondreamed.com",
