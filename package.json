@@ -1,0 +1,11 @@
+{
+	"name": "@habitica-discord/monorepo",
+	"scripts": {
+		"prepare": "lionconfig"
+	},
+	"devDependencies": {
+		"lionconfig": "latest",
+		"@types/node": "latest",
+		"typescript": "latest"
+	}
+}
