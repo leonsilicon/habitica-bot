@@ -4,12 +4,12 @@ importers:
 
   .:
     specifiers:
-      '@types/node': latest
-      lionconfig: latest
-      typescript: latest
+      '@types/node': ^18.11.18
+      lionconfig: ^2.2.15
+      typescript: ^4.9.4
     devDependencies:
       '@types/node': 18.11.18
-      lionconfig: 2.2.14_typescript@4.9.4
+      lionconfig: 2.2.15_typescript@4.9.4
       typescript: 4.9.4
 
   packages/server:
@@ -6222,8 +6222,8 @@ packages:
       dot-prop: 7.2.0
       pkg-up: 4.0.0
 
-  /lionconfig/2.2.14_typescript@4.9.4:
-    resolution: {integrity: sha512-2cAftDCTb13E8VSMnC8FPw7Kv0EhuWsfkg5rkzXavRcInGoZpqNOv6SSvkq0V8TkcJOQMyFHnPNfnmS6y8w4bQ==}
+  /lionconfig/2.2.15_typescript@4.9.4:
+    resolution: {integrity: sha512-/liQsHXjHUhEIx87XUC+ov8DUxPZE9HpTsMjnjAzGU1yxjYaf6xx7K7vmouBhJpHaDIgIF7VU1ntSfM2Xad6LA==}
     hasBin: true
     dependencies:
       '@commitlint/cli': 17.4.0_gcyavtumiruyhryngwuzxaixue

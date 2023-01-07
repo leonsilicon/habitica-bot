@@ -15,8 +15,8 @@
 	},
 	"type": "module",
 	"scripts": {
-		"build": "ts-node ./scripts/build.ts",
-		"start": "ts-node ./src/bin/start.ts"
+		"build": "ts-node ./scripts/build.js",
+		"start": "ts-node ./src/bin/start.js"
 	},
 	"devDependencies": {
 		"desm": "^1.3.0",
