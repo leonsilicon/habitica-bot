@@ -44,7 +44,7 @@ jobs:
       - name: Upload built files
         uses: burnett01/rsync-deployments@5.2.1
         with:
-          switches: -vhra --delete --include='**.gitignore' --exclude='/.git' --filter=':- .gitignore' --delete-after
+          switches: -vhra --delete --include='**.gitignore' --include='**/dist' --exclude='/.git' --filter=':- .gitignore' --delete-after
           path: /
           remote_path: /home/ubuntu/projects/habitica-bot
           remote_host: '3.237.64.131'
