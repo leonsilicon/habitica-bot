@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import dayjs from 'dayjs'
+import localizedFormat from 'dayjs/plugin/localizedFormat.js'
 import timezone from 'dayjs/plugin/timezone.js'
 import utc from 'dayjs/plugin/utc.js'
 import { ChannelType, Client, EmbedBuilder } from 'discord.js'
@@ -11,6 +12,7 @@ import invariant from 'tiny-invariant'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
+dayjs.extend(localizedFormat)
 dayjs.tz.setDefault('America/Toronto')
 
 const monorepoDir = getProjectDir(import.meta.url, { monorepoRoot: true })
