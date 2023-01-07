@@ -105,7 +105,7 @@ app.post('/webhook', async (request, reply) => {
 			},
 			{
 				name: 'Notes',
-				value: task.notes
+				value: task.notes,
 			},
 			{
 				name: 'Date',
@@ -113,12 +113,22 @@ app.post('/webhook', async (request, reply) => {
 			}
 		)
 
-	console.debug('Fetching channel...')
-	const channel = await client.channels.fetch('1061299980792496202')
-	invariant(channel?.type === ChannelType.GuildText)
+	const notificationsChannel = await client.channels.fetch(
+		'1061299980792496202'
+	)
+	invariant(notificationsChannel?.type === ChannelType.GuildText)
 
-	console.debug('Sending message...')
-	await channel.send({ embeds: [embed] })
+	await notificationsChannel.send({ embeds: [embed] })
+
+	if (task.notes.includes('Needs Proof:')) {
+		const proofDescription = /\*\*Needs Proof:\*\* (.*)/.exec(task.notes)?.[1]
+		invariant(proofDescription !== undefined, 'missing proof item')
+		const proofChannel = await client.channels.fetch('1061343393881530448')
+		invariant(proofChannel?.type === ChannelType.GuildText)
+		await proofChannel.send(
+			`<@1022267596382408755>, please send a proof for your task _${task.text}_ (${proofDescription})`
+		)
+	}
 
 	console.debug('Webhook finished!')
 	void reply.status(200)
