@@ -124,13 +124,13 @@ app.post('/webhook', async (request, reply) => {
 
 	await notificationsChannel.send({ embeds: [embed] })
 
-	if (task.notes.includes('Needs Proof:')) {
+	if (task.notes.includes('Needs Proof:') && data.direction === 'up') {
 		const proofDescription = /\*\*Needs Proof:\*\* (.*)/.exec(task.notes)?.[1]
 		invariant(proofDescription !== undefined, 'missing proof item')
 		const proofChannel = await client.channels.fetch(proofChannelId)
 		invariant(proofChannel?.type === ChannelType.GuildText)
 		await proofChannel.send(
-			`<@${leondreamedId}>, please send a proof for your task _${task.text}_ (${proofDescription})`
+			`<@${leondreamedId}>, please send proof of completion for your task _${task.text}_ (${proofDescription})`
 		)
 	}
 
