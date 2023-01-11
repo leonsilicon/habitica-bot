@@ -8,7 +8,7 @@
 	},
 	"devDependencies": {
 		"@types/node": "^18.11.18",
-		"lionconfig": "^2.2.17",
+		"lionconfig": "^2.3.1",
 		"typescript": "^4.9.4"
 	}
 }
