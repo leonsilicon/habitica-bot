@@ -138,7 +138,7 @@ app.post('/webhook', async (request, reply) => {
 		const proofChannel = await client.channels.fetch(proofChannelId)
 		invariant(proofChannel?.type === ChannelType.GuildText)
 		await proofChannel.send(
-			`Proof of completion for task _${task.text}_ (${proofDescription}): ${proofDescription}`
+			`Proof of completion for task _${task.text}_: ${proofDescription}`
 		)
 	}
 
