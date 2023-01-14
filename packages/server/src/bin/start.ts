@@ -40,14 +40,21 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!)
 
 const commandsJson = Object.values(slashCommandsMap).map((command) => {
 	invariant(command.data.toJSON !== undefined)
-	return command.data.toJSON()
+	try {
+		const json = command.data.toJSON()
+		return json
+	} catch (error: unknown) {
+		console.error(
+			`Error while retrieving command JSON for command \`${command.data.name!}\`:\n`,
+			error
+		)
+		process.exit(1)
+	}
 })
 
 const data = await rest.put(
 	Routes.applicationGuildCommands(applicationId, guildId),
-	{
-		body: commandsJson,
-	}
+	{ body: commandsJson }
 )
 
 console.log(
