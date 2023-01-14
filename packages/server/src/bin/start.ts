@@ -4,7 +4,14 @@ import dayjs from 'dayjs'
 import localizedFormat from 'dayjs/plugin/localizedFormat.js'
 import timezone from 'dayjs/plugin/timezone.js'
 import utc from 'dayjs/plugin/utc.js'
-import { ChannelType, EmbedBuilder, Events, REST, Routes } from 'discord.js'
+import {
+	type RESTPostAPIChatInputApplicationCommandsJSONBody,
+	ChannelType,
+	EmbedBuilder,
+	Events,
+	REST,
+	Routes,
+} from 'discord.js'
 import dotenv from 'dotenv'
 import { fastify } from 'fastify'
 import { getProjectDir } from 'lion-utils'
@@ -37,24 +44,24 @@ const guildId = '1061299980792496199'
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!)
 
-const commandsJson = Object.values(slashCommandsMap).map((command) => {
-	invariant(command.data.toJSON !== undefined)
+const slashCommandsJson: RESTPostAPIChatInputApplicationCommandsJSONBody[] = []
+for (const slashCommand of Object.values(slashCommandsMap)) {
+	invariant(slashCommand.data.toJSON !== undefined)
 	try {
-		const json = command.data.toJSON()
-		return json
+		slashCommandsJson.push(slashCommand.data.toJSON())
 	} catch (error: unknown) {
 		console.error(
-			`Error while retrieving command JSON for command \`${command.data
+			`Error while retrieving command JSON for command \`${slashCommand.data
 				.name!}\`:\n`,
 			error
 		)
 		process.exit(1)
 	}
-})
+}
 
 const data = await rest.put(
 	Routes.applicationGuildCommands(applicationId, guildId),
-	{ body: commandsJson }
+	{ body: slashCommandsJson }
 )
 
 console.log(

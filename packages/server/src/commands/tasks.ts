@@ -49,7 +49,7 @@ export const tasksCommand = defineSlashCommand({
 		})
 
 		const tasksSummary = tasks
-			.filter((task) => task.type === 'daily')
+			.filter((task) => task.type === 'daily' && task.isDue)
 			.map(
 				(task) =>
 					`${task.completed ? ':white_check_mark:' : ':white_large_square:'} ${
