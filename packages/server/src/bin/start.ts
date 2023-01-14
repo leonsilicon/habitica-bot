@@ -7,7 +7,6 @@ import utc from 'dayjs/plugin/utc.js'
 import { ChannelType, EmbedBuilder, Events, REST, Routes } from 'discord.js'
 import dotenv from 'dotenv'
 import { fastify } from 'fastify'
-import { got } from 'got'
 import { getProjectDir } from 'lion-utils'
 import invariant from 'tiny-invariant'
 
@@ -35,6 +34,7 @@ console.log(monorepoDir)
 dotenv.config({ path: path.join(monorepoDir, '.env') })
 
 const applicationId = '1061301445544128624'
+const guildId = '1061299980792496199'
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!)
 
@@ -43,9 +43,12 @@ const commandsJson = Object.values(slashCommandsMap).map((command) => {
 	return command.data.toJSON()
 })
 
-const data = await rest.put(Routes.applicationCommands(applicationId), {
-	body: commandsJson,
-})
+const data = await rest.put(
+	Routes.applicationGuildCommands(applicationId, guildId),
+	{
+		body: commandsJson,
+	}
+)
 
 console.log(
 	`Successfully reloaded ${

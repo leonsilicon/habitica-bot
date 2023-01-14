@@ -1,18 +1,15 @@
 import { got } from 'got'
-import { nanoid } from 'nanoid-nice'
 
+import { type HabiticaUser } from '~/types/habitica.js'
 import { env } from '~/utils/env.js'
-import { getPrisma } from '~/utils/prisma.js'
 
-export async function createUser({
+export async function getHabiticaUser({
 	habiticaUserId,
-	discordUserId,
 	habiticaApiToken,
 }: {
 	habiticaUserId: string
-	discordUserId: string
 	habiticaApiToken: string
-}) {
+}): Promise<HabiticaUser> {
 	// Retrieve the Habitica user's name
 	const response = await got('https://habitica.com/api/v3/user', {
 		headers: {
@@ -22,20 +19,6 @@ export async function createUser({
 			'x-client': `${env('HABITICA_USER_ID')}-HabiticaBot`,
 		},
 	})
-	const { profile } = JSON.parse(response.body) as { profile: { name: string } }
-
-	const prisma = await getPrisma()
-	await prisma.user.create({
-		data: {
-			id: nanoid(),
-			habiticaUser: {
-				create: {
-					id: habiticaUserId,
-					name: profile.name,
-					apiToken: habiticaApiToken,
-				},
-			},
-			discordUserId,
-		},
-	})
+	const habiticaUser = JSON.parse(response.body) as HabiticaUser
+	return habiticaUser
 }

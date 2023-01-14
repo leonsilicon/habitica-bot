@@ -68,3 +68,8 @@ export interface HabiticaRequest {
 		webhookType: string
 	}
 }
+
+export interface HabiticaUser {
+	profile: { name: string }
+	auth: { local: { username: string } }
+}

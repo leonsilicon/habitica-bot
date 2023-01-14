@@ -1,8 +1,10 @@
 import { SlashCommandBuilder } from 'discord.js'
+import { nanoid } from 'nanoid-nice'
 import invariant from 'tiny-invariant'
 
 import { defineSlashCommand } from '~/utils/command.js'
-import { createUser } from '~/utils/habitica.js'
+import { getHabiticaUser } from '~/utils/habitica.js'
+import { getPrisma } from '~/utils/prisma.js'
 
 export const linkCommand = defineSlashCommand({
 	data: new SlashCommandBuilder()
@@ -30,10 +32,28 @@ export const linkCommand = defineSlashCommand({
 		const habiticaApiToken = interaction.options.getString('User ID')
 		invariant(habiticaApiToken !== null)
 
-		await createUser({
-			discordUserId: interaction.user.id,
+		const { auth, profile } = await getHabiticaUser({
 			habiticaApiToken,
 			habiticaUserId,
+		})
+		const prisma = await getPrisma()
+		await prisma.user.create({
+			data: {
+				id: nanoid(),
+				habiticaUser: {
+					create: {
+						id: habiticaUserId,
+						name: profile.name,
+						username: auth.local.username,
+						apiToken: habiticaApiToken,
+					},
+				},
+				discordUserId: interaction.user.id,
+			},
+		})
+
+		await interaction.reply({
+			content: `Successfully linked Habitica account ${profile.name} (@${auth.local.username})!`,
 		})
 	},
 })

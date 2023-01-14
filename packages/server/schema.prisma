@@ -22,4 +22,5 @@ model HabiticaUser {
 
   apiToken String
   name     String
+  username String
 }
