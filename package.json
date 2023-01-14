@@ -1,7 +1,6 @@
 {
 	"name": "@habitica-bot/monorepo",
 	"scripts": {
-		"build": "pnpm recursive run build",
 		"dev": "pnpm --filter=@habitica-bot/server dev",
 		"db:migrate": "pnpm --filter=@habitica-bot/server exec prisma migrate dev",
 		"db:migrate:prod": "pnpm --filter=@habitica-bot/server exec prisma migrate deploy",
