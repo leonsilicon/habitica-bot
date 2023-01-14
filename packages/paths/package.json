@@ -1,0 +1,11 @@
+{
+	"name": "@habitica-bot/paths",
+	"type": "module",
+	"exports": "./src/index.ts",
+	"dependencies": {
+		"lion-utils": "^0.1.11",
+		"map-obj": "^5.0.2",
+		"type-fest": "^3.5.1",
+		"upath": "^2.0.1"
+	}
+}

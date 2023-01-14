@@ -1,7 +1,8 @@
 {
 	"name": "@habitica-bot/monorepo",
 	"scripts": {
-		"build": "pnpm recursive run build"
+		"build": "pnpm recursive run build",
+		"postinstall": "pnpm --filter=@habitica-bot/pnpm-scripts exec ts-node ./src/bin/postinstall.ts"
 	},
 	"dependencies": {
 		"pm2": "^5.2.2"

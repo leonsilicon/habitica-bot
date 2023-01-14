@@ -4,19 +4,25 @@ import dayjs from 'dayjs'
 import localizedFormat from 'dayjs/plugin/localizedFormat.js'
 import timezone from 'dayjs/plugin/timezone.js'
 import utc from 'dayjs/plugin/utc.js'
-import {
-	ChannelType,
-	Client,
-	EmbedBuilder,
-	Events,
-	GatewayIntentBits,
-} from 'discord.js'
+import { ChannelType, EmbedBuilder, Events, REST, Routes } from 'discord.js'
 import dotenv from 'dotenv'
 import { fastify } from 'fastify'
+import { got } from 'got'
 import { getProjectDir } from 'lion-utils'
 import invariant from 'tiny-invariant'
 
+import * as slashCommandsExports from '~/commands/index.js'
+import { type SlashCommand } from '~/types/command.js'
 import { type HabiticaRequest } from '~/types/habitica.js'
+import { getDiscordClient } from '~/utils/discord.js'
+import { getPrisma } from '~/utils/prisma.js'
+
+const slashCommandsMap = Object.fromEntries(
+	Object.values(slashCommandsExports).map((slashCommandExport) => [
+		slashCommandExport.data.name,
+		slashCommandExport,
+	])
+) as Record<string, SlashCommand>
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -28,16 +34,42 @@ const monorepoDir = getProjectDir(import.meta.url, { monorepoRoot: true })
 console.log(monorepoDir)
 dotenv.config({ path: path.join(monorepoDir, '.env') })
 
-const client = new Client({
-	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.MessageContent,
-	],
+const applicationId = '1061301445544128624'
+
+const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!)
+
+const commandsJson = Object.values(slashCommandsMap).map((command) => {
+	invariant(command.data.toJSON !== undefined)
+	return command.data.toJSON()
 })
+
+const data = await rest.put(Routes.applicationCommands(applicationId), {
+	body: commandsJson,
+})
+
+console.log(
+	`Successfully reloaded ${
+		(data as { length: number }).length
+	} application (/) commands.`
+)
+
+const prisma = await getPrisma()
+const client = getDiscordClient()
 
 client.once(Events.ClientReady, (client) => {
 	console.log(`Logged in as ${client.user.tag}`)
+})
+
+client.on(Events.InteractionCreate, async (interaction) => {
+	if (!interaction.isChatInputCommand()) return
+	const command = slashCommandsMap[interaction.commandName]
+	if (command === undefined) return
+
+	try {
+		await command.execute(interaction)
+	} catch (error: unknown) {
+		console.error('Slash command failed:', error)
+	}
 })
 
 client.on(Events.MessageCreate, async (message) => {
@@ -67,18 +99,6 @@ client.on(Events.MessageCreate, async (message) => {
 const app = fastify()
 
 const notificationsChannelId = '1061299980792496202'
-
-const habiticaUserDataMap: Record<string, { discordId: string; name: string }> =
-	{
-		'984c33a5-7b36-478d-8e89-d8159fbafd95': {
-			name: 'Leon Si',
-			discordId: '1022267596382408755',
-		},
-		'kevins habitica id': {
-			name: 'Kevin Xu',
-			discordId: '723922029644087378',
-		},
-	}
 
 app.post('/webhook', async (request, reply) => {
 	console.log('Webhook called with:', request.body)

@@ -1,0 +1,9 @@
+{
+	"name": "@habitica-bot/pnpm-scripts",
+	"type": "module",
+	"dependencies": {
+		"@habitica-bot/paths": "workspace:*",
+		"execa": "^6.1.0",
+		"lion-utils": "^0.1.11"
+	}
+}
