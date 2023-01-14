@@ -8,6 +8,7 @@
 	},
 	"dependencies": {
 		"ts-node-wrapper": "^0.0.2",
+		"@leondreamed/tsconfig": "^0.0.1",
 		"pm2": "^5.2.2"
 	},
 	"devDependencies": {

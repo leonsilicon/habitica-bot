@@ -4,12 +4,14 @@ importers:
 
   .:
     specifiers:
+      '@leondreamed/tsconfig': ^0.0.1
       '@types/node': ^18.11.18
       lionconfig: ^2.3.1
       pm2: ^5.2.2
       ts-node-wrapper: ^0.0.2
       typescript: ^4.9.4
     dependencies:
+      '@leondreamed/tsconfig': 0.0.1
       pm2: 5.2.2
       ts-node-wrapper: 0.0.2_awa2wsr5thmg3i7jqycphctjfq
     devDependencies:
@@ -873,6 +875,11 @@ packages:
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
     dev: true
+
+  /@leondreamed/tsconfig/0.0.1:
+    resolution: {integrity: sha512-NtTkVchrSC919bDLEU2Ms2CvUqEwcKz3Mx29AzyA6XI/M6mc7Yu3Rk4c3vG/bocDcZWjZaxzupYp8zEjnqLZ3A==}
+    engines: {node: '>=14'}
+    dev: false
 
   /@mapbox/node-pre-gyp/1.0.10:
     resolution: {integrity: sha512-4ySo4CjzStuprMwk35H5pPbkymjv1SF3jGLj6rAHp/xT/RF7TL7bd9CTm1xDY49K2qF7jmR/g7k+SkLETP6opA==}

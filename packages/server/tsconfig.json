@@ -1,5 +1,5 @@
 {
-	"extends": "lionconfig/tsconfig.json",
+	"extends": "@leondreamed/tsconfig",
 	"compilerOptions": {
 		"outDir": "dist",
 		"baseUrl": ".",
