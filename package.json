@@ -8,7 +8,7 @@
 		"postinstall": "pnpm --filter=@habitica-bot/pnpm-scripts exec ts-node ./src/bin/postinstall.ts"
 	},
 	"dependencies": {
-		"@habitica-bot/ts-node": "workspace:*",
+		"ts-node-wrapper": "^0.0.2",
 		"pm2": "^5.2.2"
 	},
 	"devDependencies": {
