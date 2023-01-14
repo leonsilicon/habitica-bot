@@ -48,6 +48,7 @@ export const linkCommand = defineSlashCommand({
 						apiToken: habiticaApiToken,
 					},
 				},
+				areTasksPublic: false,
 				discordUserId: interaction.user.id,
 			},
 		})

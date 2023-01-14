@@ -14,6 +14,9 @@ model User {
 
   habiticaUser   HabiticaUser @relation(fields: [habiticaUserId], references: [id])
   habiticaUserId String       @unique
+
+  // Whether the user's tasks are public (default false)
+  areTasksPublic Boolean @default(false)
 }
 
 model HabiticaUser {
