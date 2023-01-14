@@ -2,7 +2,7 @@ import { EmbedBuilder, SlashCommandBuilder } from 'discord.js'
 import invariant from 'tiny-invariant'
 
 import { defineSlashCommand } from '~/utils/command.js'
-import { getHabiticaTasks } from '~/utils/habitica.js'
+import { gotHabitica } from '~/utils/habitica.js'
 import { getPrisma } from '~/utils/prisma.js'
 
 export const tasksCommand = defineSlashCommand({
@@ -43,9 +43,9 @@ export const tasksCommand = defineSlashCommand({
 			throw new Error('User has set their tasks to private.')
 		}
 
-		const tasks = await getHabiticaTasks({
-			habiticaApiToken: user.habiticaUser.apiToken,
-			habiticaUserId: user.habiticaUser.id,
+		const tasks = await gotHabitica('GET /api/v3/tasks/user', {
+			apiToken: user.habiticaUser.apiToken,
+			userId: user.habiticaUser.id,
 		})
 
 		const tasksSummary = tasks

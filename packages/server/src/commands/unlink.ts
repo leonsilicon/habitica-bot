@@ -1,7 +1,9 @@
 import { SlashCommandBuilder } from 'discord.js'
 
 import { defineSlashCommand } from '~/utils/command.js'
+import { gotHabitica } from '~/utils/habitica.js'
 import { getPrisma } from '~/utils/prisma.js'
+import { habiticaBotWebhookUrl } from '~/utils/webhook.js'
 
 export const unlinkCommand = defineSlashCommand({
 	data: new SlashCommandBuilder()
@@ -13,6 +15,8 @@ export const unlinkCommand = defineSlashCommand({
 			select: {
 				habiticaUser: {
 					select: {
+						apiToken: true,
+						id: true,
 						name: true,
 						username: true,
 					},
@@ -22,6 +26,24 @@ export const unlinkCommand = defineSlashCommand({
 				discordUserId: interaction.user.id,
 			},
 		})
+
+		const webhooks = await gotHabitica('GET /api/v3/user/webhook', {
+			apiToken: user.habiticaUser.apiToken,
+			userId: user.habiticaUser.id,
+		})
+		const habiticaBotWebhookId = webhooks.find(
+			(webhook) => webhook.url === habiticaBotWebhookUrl
+		)?.id
+
+		if (habiticaBotWebhookId !== undefined) {
+			await gotHabitica('DELETE /api/v3/user/webhook/:id', {
+				apiToken: user.habiticaUser.apiToken,
+				userId: user.habiticaUser.id,
+				params: {
+					id: habiticaBotWebhookId,
+				},
+			})
+		}
 
 		await interaction.reply({
 			ephemeral: true,

@@ -77,3 +77,9 @@ export interface HabiticaUserResponse {
 }
 
 export type HabiticaTasksResponse = HabiticaTask[]
+
+export type HabiticaWebhooksResponse = Array<{
+	id: string
+	url: string
+	enabled: boolean
+}>

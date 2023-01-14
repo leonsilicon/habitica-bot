@@ -3,8 +3,9 @@ import { nanoid } from 'nanoid-nice'
 import invariant from 'tiny-invariant'
 
 import { defineSlashCommand } from '~/utils/command.js'
-import { getHabiticaUser } from '~/utils/habitica.js'
+import { gotHabitica } from '~/utils/habitica.js'
 import { getPrisma } from '~/utils/prisma.js'
+import { habiticaBotWebhookUrl } from '~/utils/webhook.js'
 
 export const linkCommand = defineSlashCommand({
 	data: new SlashCommandBuilder()
@@ -32,9 +33,9 @@ export const linkCommand = defineSlashCommand({
 		const habiticaApiToken = interaction.options.getString('api_token')
 		invariant(habiticaApiToken !== null)
 
-		const { auth, profile } = await getHabiticaUser({
-			habiticaApiToken,
-			habiticaUserId,
+		const { auth, profile } = await gotHabitica('GET /api/v3/user', {
+			apiToken: habiticaApiToken,
+			userId: habiticaUserId,
 		})
 		const prisma = await getPrisma()
 		await prisma.user.create({
@@ -52,6 +53,34 @@ export const linkCommand = defineSlashCommand({
 				discordUserId: interaction.user.id,
 			},
 		})
+
+		const webhooks = await gotHabitica('GET /api/v3/user/webhook', {
+			apiToken: habiticaApiToken,
+			userId: habiticaUserId,
+		})
+
+		const habiticaBotWebhook = webhooks.find(
+			(webhook) => webhook.url === habiticaBotWebhookUrl
+		)
+		if (habiticaBotWebhook === undefined) {
+			await gotHabitica('POST /api/v3/user/webhook', {
+				apiToken: habiticaApiToken,
+				userId: habiticaUserId,
+				body: {
+					url: habiticaBotWebhookUrl,
+				},
+			})
+		} else {
+			if (!habiticaBotWebhook.enabled) {
+				await gotHabitica('PUT /api/v3/user/webhook/:id', {
+					apiToken: habiticaApiToken,
+					userId: habiticaUserId,
+					body: {
+						enabled: true,
+					},
+				})
+			}
+		}
 
 		await interaction.reply({
 			ephemeral: true,
