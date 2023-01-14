@@ -4,6 +4,7 @@
 		"build": "pnpm recursive run build",
 		"dev": "pnpm --filter=@habitica-bot/server dev",
 		"db:migrate": "pnpm --filter=@habitica-bot/server exec prisma migrate dev",
+		"db:migrate:prod": "pnpm --filter=@habitica-bot/server exec prisma migrate deploy",
 		"postinstall": "pnpm --filter=@habitica-bot/pnpm-scripts exec ts-node ./src/bin/postinstall.ts"
 	},
 	"dependencies": {

@@ -62,4 +62,5 @@ jobs:
             export PATH="$PNPM_HOME:$PATH"
             cd ~/projects/habitica-bot
             pnpm install --prod
+            pnpm db:migrate:prod
             pnpm exec pm2 restart ecosystem.config.cjs
