@@ -1,4 +1,5 @@
 import { got } from 'got'
+import { nanoid } from 'nanoid-nice'
 
 import { env } from '~/utils/env.js'
 import { getPrisma } from '~/utils/prisma.js'
@@ -26,10 +27,13 @@ export async function createUser({
 	const prisma = await getPrisma()
 	await prisma.user.create({
 		data: {
-			habiticaUserId,
+			id: nanoid(),
 			habiticaUser: {
-				name: profile.name,
-				apiToken: habiticaApiToken,
+				create: {
+					id: habiticaUserId,
+					name: profile.name,
+					apiToken: habiticaApiToken,
+				},
 			},
 			discordUserId,
 		},

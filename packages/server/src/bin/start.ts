@@ -53,7 +53,6 @@ console.log(
 	} application (/) commands.`
 )
 
-const prisma = await getPrisma()
 const client = getDiscordClient()
 
 client.once(Events.ClientReady, (client) => {
@@ -105,13 +104,20 @@ app.post('/webhook', async (request, reply) => {
 	const data = request.body as HabiticaRequest
 	const { task } = data
 
-	const habiticaUserData = habiticaUserDataMap[data.user._id]
-	if (habiticaUserData === undefined) {
-		console.error(`Discord ID for Habitica user ${data.user._id} not found.`)
-		return reply.status(400)
-	}
-
-	const { discordId, name } = habiticaUserData
+	const prisma = await getPrisma()
+	const user = await prisma.user.findUniqueOrThrow({
+		select: {
+			discordUserId: true,
+			habiticaUser: {
+				select: {
+					name: true,
+				},
+			},
+		},
+		where: {
+			habiticaUserId: data.user._id,
+		},
+	})
 
 	let title: string
 	let description: string
@@ -132,7 +138,7 @@ app.post('/webhook', async (request, reply) => {
 		.addFields(
 			{
 				name: 'User',
-				value: name,
+				value: user.habiticaUser.name,
 			},
 			{
 				name: 'Task Name',
@@ -163,7 +169,7 @@ app.post('/webhook', async (request, reply) => {
 		console.log('sending proof message')
 		await notificationsChannel.send({
 			embeds: [embed],
-			content: `<@${discordId}>, please send proof of completion for your task _${task.text}_ (${proofDescription})`,
+			content: `<@${user.discordUserId}>, please send proof of completion for your task _${task.text}_ (${proofDescription})`,
 		})
 	} else {
 		await notificationsChannel.send({

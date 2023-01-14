@@ -1,7 +1,8 @@
 import { SlashCommandBuilder } from 'discord.js'
+import invariant from 'tiny-invariant'
 
 import { defineSlashCommand } from '~/utils/command.js'
-import { getPrisma } from '~/utils/prisma.js'
+import { createUser } from '~/utils/habitica.js'
 
 export const linkCommand = defineSlashCommand({
 	data: new SlashCommandBuilder()
@@ -9,7 +10,7 @@ export const linkCommand = defineSlashCommand({
 		.setDescription('Link your Habitica account')
 		.addStringOption((option) =>
 			option
-				.setName('User ID')
+				.setName('user_id')
 				.setDescription(
 					'Your Habitica User ID (can be found at https://habitica.com/user/settings/api)'
 				)
@@ -17,23 +18,22 @@ export const linkCommand = defineSlashCommand({
 		)
 		.addStringOption((option) =>
 			option
-				.setName('API Token')
+				.setName('api_token')
 				.setDescription(
 					'Your Habitica API Token (can be found at https://habitica.com/user/settings/api)'
 				)
 				.setRequired(true)
 		),
 	async execute(interaction) {
-		const prisma = await getPrisma()
 		const habiticaUserId = interaction.options.getString('User ID')
+		invariant(habiticaUserId !== null)
 		const habiticaApiToken = interaction.options.getString('User ID')
+		invariant(habiticaApiToken !== null)
 
-		await prisma.user.create({
-			data: {
-				discordUserId: interaction.user.id,
-				habiticaUserId,
-				habiticaApiToken,
-			},
+		await createUser({
+			discordUserId: interaction.user.id,
+			habiticaApiToken,
+			habiticaUserId,
 		})
 	},
 })
