@@ -61,6 +61,12 @@ jobs:
             export PNPM_HOME="/home/ubuntu/.local/share/pnpm"
             export PATH="$PNPM_HOME:$PATH"
             cd ~/projects/habitica-bot
+
+            # Avoids getting the "Killed" error for pnpm install, see https://stackoverflow.com/a/45921532/19461620
+            sudo /bin/dd if=/dev/zero of=/var/swap.1 bs=1M count=1024
+            sudo /sbin/mkswap /var/swap.1
+            sudo /sbin/swapon /var/swap.1
+
             pnpm install --prod
             pnpm db:migrate:prod
             pnpm exec pm2 restart ecosystem.config.cjs
