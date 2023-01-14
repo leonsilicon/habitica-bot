@@ -70,7 +70,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	try {
 		await command.execute(interaction)
 	} catch (error: unknown) {
-		console.error('Slash command failed:', error)
+		console.error('Interaction failed:', error)
+		await interaction.reply({
+			ephemeral: true,
+			content: `An error occurred: ${(error as { message: string }).message}`,
+		})
 	}
 })
 

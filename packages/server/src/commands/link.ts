@@ -27,9 +27,9 @@ export const linkCommand = defineSlashCommand({
 				.setRequired(true)
 		),
 	async execute(interaction) {
-		const habiticaUserId = interaction.options.getString('User ID')
+		const habiticaUserId = interaction.options.getString('user_id')
 		invariant(habiticaUserId !== null)
-		const habiticaApiToken = interaction.options.getString('User ID')
+		const habiticaApiToken = interaction.options.getString('api_token')
 		invariant(habiticaApiToken !== null)
 
 		const { auth, profile } = await getHabiticaUser({

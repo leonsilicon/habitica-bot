@@ -122,3 +122,5 @@ dist
 
 temp
 .rollup.cache
+
+*.db
