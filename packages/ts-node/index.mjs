@@ -1,0 +1,1 @@
+export * from '@leondreamed/ts-node'
