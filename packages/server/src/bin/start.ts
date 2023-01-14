@@ -30,7 +30,6 @@ dayjs.tz.setDefault('America/Toronto')
 
 const monorepoDir = getProjectDir(import.meta.url, { monorepoRoot: true })
 
-console.log(monorepoDir)
 dotenv.config({ path: path.join(monorepoDir, '.env') })
 
 const applicationId = '1061301445544128624'
@@ -45,7 +44,8 @@ const commandsJson = Object.values(slashCommandsMap).map((command) => {
 		return json
 	} catch (error: unknown) {
 		console.error(
-			`Error while retrieving command JSON for command \`${command.data.name!}\`:\n`,
+			`Error while retrieving command JSON for command \`${command.data
+				.name!}\`:\n`,
 			error
 		)
 		process.exit(1)

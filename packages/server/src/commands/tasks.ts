@@ -15,7 +15,7 @@ export const tasksCommand = defineSlashCommand({
 			option
 				.setName('user')
 				.setDescription('The user whose tasks you want to view')
-				.setRequired(false)
+				.setRequired(true)
 		),
 	async execute(interaction) {
 		const discordUser = interaction.options.getUser('user')
@@ -24,6 +24,7 @@ export const tasksCommand = defineSlashCommand({
 		const prisma = await getPrisma()
 		const user = await prisma.user.findFirstOrThrow({
 			select: {
+				areTasksPublic: true,
 				habiticaUser: {
 					select: {
 						id: true,
@@ -38,12 +39,17 @@ export const tasksCommand = defineSlashCommand({
 			},
 		})
 
+		if (!user.areTasksPublic) {
+			throw new Error('User has set their tasks to private.')
+		}
+
 		const tasks = await getHabiticaTasks({
 			habiticaApiToken: user.habiticaUser.apiToken,
 			habiticaUserId: user.habiticaUser.id,
 		})
 
 		const tasksSummary = tasks
+			.filter((task) => task.type === 'daily')
 			.map(
 				(task) =>
 					`${task.completed ? ':white_check_mark:' : ':white_large_square:'} ${

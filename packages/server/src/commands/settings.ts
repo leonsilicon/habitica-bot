@@ -1,6 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js'
 import invariant from 'tiny-invariant'
-import yn from 'yn'
 
 import { defineSlashCommand } from '~/utils/command.js'
 import { getPrisma } from '~/utils/prisma.js'
@@ -11,46 +10,30 @@ export const settingsCommand = defineSlashCommand({
 		.setDescription('Interact with your personal settings')
 		.addSubcommand((subcommand) =>
 			subcommand
-				.setName('set')
-				.setDescription('Configure your personal settings')
-				.addStringOption((option) =>
+				.setName('public_tasks')
+				.setDescription('Whether your tasks are public')
+				.addBooleanOption((option) =>
 					option
-						.setName('set_choice')
-						.setDescription('The setting you want to set')
-						.setChoices({
-							name: 'Public Tasks',
-							value: 'public_tasks',
-						})
-						.setRequired(true)
-				)
-				.addStringOption((option) =>
-					option
-						.setName('set_value')
-						.setDescription('The value you want to set')
+						.setName('new_value')
+						.setDescription(
+							'true if you want your tasks to be public, false if you want them to be private'
+						)
+						.setRequired(false)
 				)
 		),
 	async execute(interaction) {
-		const discordUser = interaction.options.getUser('user')
-		invariant(discordUser !== null)
-
-		if (interaction.options.getSubcommand() === 'set') {
-			const choice = interaction.options.getString('set_choice')
-			const stringValue = interaction.options.getString('set_value')
+		if (interaction.options.getSubcommand() === 'public_tasks') {
+			const value = interaction.options.getBoolean('new_value')
 			invariant(value !== null)
-
-			if (choice === 'public_tasks') {
-				const value = yn(stringValue)
-				invariant(value !== undefined)
-				const prisma = await getPrisma()
-				await prisma.user.update({
-					data: {
-						areTasksPublic: value,
-					},
-					where: {
-						discordUserId: discordUser.id,
-					},
-				})
-			}
+			const prisma = await getPrisma()
+			await prisma.user.update({
+				data: {
+					areTasksPublic: value,
+				},
+				where: {
+					discordUserId: interaction.user.id,
+				},
+			})
 		}
 
 		await interaction.reply({
