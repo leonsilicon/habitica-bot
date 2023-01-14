@@ -19,7 +19,6 @@ export async function getHabiticaUser({
 			'x-client': `${env('HABITICA_USER_ID')}-HabiticaBot`,
 		},
 	})
-	console.log('Habitica response:', response.body)
 	const { data } = JSON.parse(response.body) as { data: HabiticaUser }
 	return data
 }

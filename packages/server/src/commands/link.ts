@@ -53,6 +53,7 @@ export const linkCommand = defineSlashCommand({
 		})
 
 		await interaction.reply({
+			ephemeral: true,
 			content: `Successfully linked Habitica account ${profile.name} (@${auth.local.username})!`,
 		})
 	},
