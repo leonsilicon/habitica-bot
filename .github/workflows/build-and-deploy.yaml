@@ -38,9 +38,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build App
-        run: pnpm build
-
       - name: Upload built files
         uses: burnett01/rsync-deployments@5.2.1
         with:
