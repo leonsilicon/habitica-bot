@@ -1,7 +1,7 @@
 import { type BaseMessageOptions, type MessagePayload } from 'discord.js'
 
 import { gotHabitica } from '~/utils/habitica.js'
-
+import { EmbedBuilder } from 'discord.js'
 export async function createTasksSummaryMessage(habiticaUser: {
 	apiToken: string
 	id: string
