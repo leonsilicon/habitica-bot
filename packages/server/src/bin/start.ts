@@ -101,7 +101,7 @@ client.on(Events.MessageCreate, async (message) => {
 	}
 
 	const needsProofMessage = await message.channel.messages.fetch(repliedTo)
-	if (needsProofMessage.author.id !== message.author.id) {
+	if (!needsProofMessage.content.startsWith(`<@${message.author.id}>`)) {
 		return
 	}
 
