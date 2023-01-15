@@ -15,6 +15,7 @@ import {
 import dotenv from 'dotenv'
 import { fastify } from 'fastify'
 import { getProjectDir } from 'lion-utils'
+import schedule from 'node-schedule'
 import invariant from 'tiny-invariant'
 
 import * as slashCommandsExports from '~/commands/index.js'
@@ -22,6 +23,7 @@ import { type SlashCommand } from '~/types/command.js'
 import { type HabiticaRequest } from '~/types/habitica.js'
 import { getDiscordClient } from '~/utils/discord.js'
 import { getPrisma } from '~/utils/prisma.js'
+import { createTasksSummaryMessage } from '~/utils/tasks.js'
 
 const slashCommandsMap = Object.fromEntries(
 	Object.values(slashCommandsExports).map((slashCommandExport) => [
@@ -99,6 +101,10 @@ client.on(Events.MessageCreate, async (message) => {
 	}
 
 	const needsProofMessage = await message.channel.messages.fetch(repliedTo)
+	if (needsProofMessage.author.id !== message.author.id) {
+		return
+	}
+
 	const embed = needsProofMessage.embeds[0]
 	if (embed === undefined) {
 		return
@@ -112,6 +118,7 @@ client.on(Events.MessageCreate, async (message) => {
 	})
 
 	await needsProofMessage.edit({
+		content: '',
 		embeds: [newEmbed],
 	})
 })
@@ -119,6 +126,38 @@ client.on(Events.MessageCreate, async (message) => {
 const app = fastify()
 
 const notificationsChannelId = '1061299980792496202'
+
+schedule.scheduleJob('0 0 * * *', async () => {
+	const client = getDiscordClient()
+	const channel = await client.channels.fetch(notificationsChannelId)
+
+	if (channel?.isTextBased()) {
+		// Get all users who have public tasks set to true
+
+		const prisma = await getPrisma()
+		const users = await prisma.user.findMany({
+			select: {
+				habiticaUser: {
+					select: {
+						apiToken: true,
+						id: true,
+						name: true,
+						username: true,
+					},
+				},
+			},
+			where: {
+				areTasksPublic: true,
+			},
+		})
+
+		await Promise.all(
+			users.map(async (user) => {
+				await channel.send(await createTasksSummaryMessage(user.habiticaUser))
+			})
+		)
+	}
+})
 
 app.post('/webhook', async (request, reply) => {
 	console.log('Webhook called with:', request.body)
