@@ -127,7 +127,11 @@ const app = fastify()
 
 const notificationsChannelId = '1061299980792496202'
 
-schedule.scheduleJob('0 0 * * *', async () => {
+const rule = new schedule.RecurrenceRule()
+rule.tz = 'America/Toronto'
+rule.second = 0
+rule.minute = 0
+schedule.scheduleJob(rule, async () => {
 	const client = getDiscordClient()
 	const channel = await client.channels.fetch(notificationsChannelId)
 
