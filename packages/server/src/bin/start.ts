@@ -131,6 +131,8 @@ const rule = new schedule.RecurrenceRule()
 rule.tz = 'America/Toronto'
 rule.second = 0
 rule.minute = 0
+rule.hour = 0
+
 schedule.scheduleJob(rule, async () => {
 	const client = getDiscordClient()
 	const channel = await client.channels.fetch(notificationsChannelId)
