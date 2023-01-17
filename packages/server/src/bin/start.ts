@@ -197,12 +197,8 @@ app.post('/webhook', async (request, reply) => {
 
 	const doesTaskNeedProof =
 		/\*\*Needs Proof:\*\* (.*)/.test(task.notes) && data.direction === 'up'
-	const embed = new EmbedBuilder()
-		.setColor(doesTaskNeedProof ? 'Orange' : 'Green')
-		.setTitle(title)
-		.setDescription(description)
-		.addFields(
-			{
+	const fields: Array<{ name: string, value: string }> = [
+					{
 				name: 'User',
 				value: user.habiticaUser.name,
 			},
@@ -210,14 +206,27 @@ app.post('/webhook', async (request, reply) => {
 				name: 'Task Name',
 				value: task.text,
 			},
-			{
+        ]
+	if (task.notes?.trim() !== '') {
+		fields.push(			{
 				name: 'Task Notes',
 				value: task.notes,
-			},
+			})
+	}
+	fields.push(
+		
 			{
 				name: 'Date',
 				value: dayjs().tz().format('LLL'),
 			}
+		)
+	const embed = new EmbedBuilder()
+		.setColor(doesTaskNeedProof ? 'Orange' : 'Green')
+		.setTitle(title)
+		.setDescription(description)
+		.addFields(
+			...fields
+
 		)
 
 	const notificationsChannel = await client.channels.fetch(
