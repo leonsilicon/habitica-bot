@@ -67,8 +67,7 @@ const data = await rest.put(
 )
 
 console.log(
-	`Successfully reloaded ${
-		(data as { length: number }).length
+	`Successfully reloaded ${(data as { length: number }).length
 	} application (/) commands.`
 )
 
@@ -197,37 +196,33 @@ app.post('/webhook', async (request, reply) => {
 
 	const doesTaskNeedProof =
 		/\*\*Needs Proof:\*\* (.*)/.test(task.notes) && data.direction === 'up'
-	const fields: Array<{ name: string, value: string }> = [
-					{
-				name: 'User',
-				value: user.habiticaUser.name,
-			},
-			{
-				name: 'Task Name',
-				value: task.text,
-			},
-        ]
+	const fields: Array<{ name: string; value: string }> = [
+		{
+			name: 'User',
+			value: user.habiticaUser.name,
+		},
+		{
+			name: 'Task Name',
+			value: task.text,
+		},
+	]
+
 	if (task.notes?.trim() !== '') {
-		fields.push(			{
-				name: 'Task Notes',
-				value: task.notes,
-			})
+		fields.push({
+			name: 'Task Notes',
+			value: task.notes!,
+		})
 	}
-	fields.push(
-		
-			{
-				name: 'Date',
-				value: dayjs().tz().format('LLL'),
-			}
-		)
+
+	fields.push({
+		name: 'Date',
+		value: dayjs().tz().format('LLL'),
+	})
 	const embed = new EmbedBuilder()
 		.setColor(doesTaskNeedProof ? 'Orange' : 'Green')
 		.setTitle(title)
 		.setDescription(description)
-		.addFields(
-			...fields
-
-		)
+		.addFields(...fields)
 
 	const notificationsChannel = await client.channels.fetch(
 		notificationsChannelId

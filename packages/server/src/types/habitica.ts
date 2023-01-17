@@ -22,7 +22,7 @@ interface HabiticaTask {
 	completed: boolean
 	collapseChecklist: boolean
 	type: string
-	notes: string
+	notes: string | null
 	tags: unknown[]
 	value: number
 	priority: number
