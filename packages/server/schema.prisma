@@ -12,7 +12,7 @@ model User {
 
   discordUserId String @unique
 
-  habiticaUser   HabiticaUser @relation(fields: [habiticaUserId], references: [id])
+  habiticaUser   HabiticaUser @relation(fields: [habiticaUserId], references: [id], onDelete: Cascade)
   habiticaUserId String       @unique
 
   // Whether the user's tasks are public (default false)
