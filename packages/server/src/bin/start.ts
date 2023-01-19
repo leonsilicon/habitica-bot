@@ -67,8 +67,7 @@ const data = await rest.put(
 )
 
 console.log(
-	`Successfully reloaded ${
-		(data as { length: number }).length
+	`Successfully reloaded ${(data as { length: number }).length
 	} application (/) commands.`
 )
 
@@ -124,7 +123,15 @@ client.on(Events.MessageCreate, async (message) => {
 })
 
 const app = fastify({
-	logger: true
+	logger: {
+		transport: {
+			target: 'pino-pretty',
+			options: {
+				translateTime: 'HH:MM:ss Z',
+				ignore: 'pid,hostname',
+			},
+		},
+	},
 })
 
 const notificationsChannelId = '1061299980792496202'
@@ -197,11 +204,11 @@ app.post('/webhook', async (request, reply) => {
 	let title: string
 	let description: string
 	if (data.direction === 'up') {
-		title = 'Task Completed'
-		description = 'A task has been checked off!'
+		title = `${data.task.type} Completed`
+		description = `A ${data.task.type} has been checked off!`
 	} else {
-		title = 'Task Undone'
-		description = 'A task has been unchecked!'
+		title = `${data.task.type} Undone`
+		description = `A ${data.task.type} has been unchecked!`
 	}
 
 	const doesTaskNeedProof =
