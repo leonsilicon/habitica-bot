@@ -203,8 +203,7 @@ app.post('/webhook', async (request, reply) => {
 	}
 
 	const doesTaskNeedProof =
-		/\*\*Needs Proof:\*\* (.*)/.test(task.notes ?? '') &&
-		data.direction === 'up'
+		/\*\*Needs Proof:\*\* (.*)/.test(task.notes) && data.direction === 'up'
 	const fields: Array<{ name: string; value: string }> = [
 		{
 			name: 'User',
