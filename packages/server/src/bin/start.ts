@@ -67,7 +67,8 @@ const data = await rest.put(
 )
 
 console.log(
-	`Successfully reloaded ${(data as { length: number }).length
+	`Successfully reloaded ${
+		(data as { length: number }).length
 	} application (/) commands.`
 )
 
@@ -235,8 +236,16 @@ app.post('/webhook', async (request, reply) => {
 		name: 'Date',
 		value: dayjs().tz().format('LLL'),
 	})
+
+	let taskColor: string
+	if (data.direction === 'up') {
+		taskColor = doesTaskNeedProof ? 'Orange' : 'Green'
+	} else {
+		taskColor = 'Red'
+	}
+
 	const embed = new EmbedBuilder()
-		.setColor(doesTaskNeedProof ? 'Orange' : 'Green')
+		.setColor(taskColor)
 		.setTitle(title)
 		.setDescription(description)
 		.addFields(...fields)
