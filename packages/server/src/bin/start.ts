@@ -123,7 +123,9 @@ client.on(Events.MessageCreate, async (message) => {
 	})
 })
 
-const app = fastify()
+const app = fastify({
+	logger: true
+})
 
 const notificationsChannelId = '1061299980792496202'
 
@@ -238,9 +240,7 @@ app.post('/webhook', async (request, reply) => {
 	invariant(notificationsChannel?.type === ChannelType.GuildText)
 
 	if (doesTaskNeedProof) {
-		const proofDescription = /\*\*Needs Proof:\*\* (.*)/.exec(
-			task.notes ?? ''
-		)?.[1]
+		const proofDescription = /\*\*Needs Proof:\*\* (.*)/.exec(task.notes)?.[1]
 		invariant(proofDescription !== undefined, 'missing proof item')
 		const notificationsChannel = await client.channels.fetch(
 			notificationsChannelId
