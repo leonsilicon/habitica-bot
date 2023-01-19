@@ -174,6 +174,7 @@ app.post('/webhook', async (request, reply) => {
 	const prisma = await getPrisma()
 	const user = await prisma.user.findUniqueOrThrow({
 		select: {
+			id: true,
 			discordUserId: true,
 			habiticaUser: {
 				select: {
@@ -185,6 +186,7 @@ app.post('/webhook', async (request, reply) => {
 			habiticaUserId: data.user._id,
 		},
 	})
+	console.info(`User ID: ${user.id}`)
 
 	if (user.habiticaUser === null) {
 		return
@@ -214,10 +216,10 @@ app.post('/webhook', async (request, reply) => {
 		},
 	]
 
-	if (task.notes?.trim() !== '') {
+	if (task.notes.trim() !== '') {
 		fields.push({
 			name: 'Task Notes',
-			value: task.notes!,
+			value: task.notes,
 		})
 	}
 
@@ -245,12 +247,13 @@ app.post('/webhook', async (request, reply) => {
 			notificationsChannelId
 		)
 		invariant(notificationsChannel?.type === ChannelType.GuildText)
-		console.log('sending proof message')
+		console.info('Sending proof message...')
 		await notificationsChannel.send({
 			embeds: [embed],
 			content: `<@${user.discordUserId}>, please send proof of completion for your task _${task.text}_ (${proofDescription})`,
 		})
 	} else {
+		console.info('Sending embed...')
 		await notificationsChannel.send({
 			embeds: [embed],
 		})
