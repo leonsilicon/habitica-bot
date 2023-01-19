@@ -14,6 +14,7 @@ import {
 } from 'discord.js'
 import dotenv from 'dotenv'
 import { fastify } from 'fastify'
+import capitalize from 'just-capitalize'
 import { getProjectDir } from 'lion-utils'
 import schedule from 'node-schedule'
 import invariant from 'tiny-invariant'
@@ -205,10 +206,10 @@ app.post('/webhook', async (request, reply) => {
 	let title: string
 	let description: string
 	if (data.direction === 'up') {
-		title = `${data.task.type} Completed`
+		title = `${capitalize(data.task.type)} Completed`
 		description = `A ${data.task.type} has been checked off!`
 	} else {
-		title = `${data.task.type} Undone`
+		title = `${capitalize(data.task.type)} Undone`
 		description = `A ${data.task.type} has been unchecked!`
 	}
 

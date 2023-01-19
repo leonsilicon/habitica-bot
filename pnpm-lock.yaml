@@ -52,6 +52,7 @@ importers:
       execa: ^6.1.0
       fastify: ^4.11.0
       got: ^12.5.3
+      just-capitalize: ^3.2.0
       lion-utils: ^0.1.11
       nanoid-nice: ^1.0.6
       node-schedule: ^2.1.1
@@ -71,6 +72,7 @@ importers:
       dotenv: 16.0.3
       fastify: 4.11.0
       got: 12.5.3
+      just-capitalize: 3.2.0
       lion-utils: 0.1.11
       nanoid-nice: 1.0.6
       node-schedule: 2.1.1
@@ -6788,6 +6790,10 @@ packages:
     resolution: {integrity: sha512-POQXvpdL69+CluYsillJ7SUhKvytYjW9vG/GKpnf+xP8UWgYEM/RaMzHHofbALDiKbbP1W8UEYmgGl39WkPZsg==}
     engines: {'0': node >= 0.2.0}
     dev: true
+
+  /just-capitalize/3.2.0:
+    resolution: {integrity: sha512-FK8U9A5AHCIGxlEXg3RFJkb9Nz/fS9luJlrfRf0bFBZU6xnIQ6tbwl+HitMJLwCFszZqVaXQcyeoy8/PYABS6A==}
+    dev: false
 
   /keyv/4.5.2:
     resolution: {integrity: sha512-5MHbFaKn8cNSmVW7BYnijeAVlE4cYA/SVkifVgrh7yotnfhKmjuXpDKjrABLnT0SfHWV21P8ow07OGfRrNDg8g==}
