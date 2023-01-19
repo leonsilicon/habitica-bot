@@ -12,18 +12,18 @@ model User {
 
   discordUserId String @unique
 
-  habiticaUser   HabiticaUser?
-  habiticaUserId String       @unique
+  habiticaUser   HabiticaUser? @relation("habiticaUser")
+  habiticaUserId String        @unique
 
   // Whether the user's tasks are public (default false)
   areTasksPublic Boolean @default(false)
 }
 
 model HabiticaUser {
-  id   String @unique
+  id String @unique
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-	userId String @unique
+  user   User   @relation(name: "habiticaUser", fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
 
   apiToken String
   name     String
