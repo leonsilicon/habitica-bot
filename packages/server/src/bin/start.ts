@@ -67,7 +67,8 @@ const data = await rest.put(
 )
 
 console.log(
-	`Successfully reloaded ${(data as { length: number }).length
+	`Successfully reloaded ${
+		(data as { length: number }).length
 	} application (/) commands.`
 )
 
@@ -158,6 +159,7 @@ schedule.scheduleJob(rule, async () => {
 
 		await Promise.all(
 			users.map(async (user) => {
+				if (user.habiticaUser === null) return
 				await channel.send(await createTasksSummaryMessage(user.habiticaUser))
 			})
 		)
@@ -184,6 +186,10 @@ app.post('/webhook', async (request, reply) => {
 		},
 	})
 
+	if (user.habiticaUser === null) {
+		return
+	}
+
 	let title: string
 	let description: string
 	if (data.direction === 'up') {
@@ -195,7 +201,8 @@ app.post('/webhook', async (request, reply) => {
 	}
 
 	const doesTaskNeedProof =
-		/\*\*Needs Proof:\*\* (.*)/.test(task.notes) && data.direction === 'up'
+		/\*\*Needs Proof:\*\* (.*)/.test(task.notes ?? '') &&
+		data.direction === 'up'
 	const fields: Array<{ name: string; value: string }> = [
 		{
 			name: 'User',
@@ -230,7 +237,9 @@ app.post('/webhook', async (request, reply) => {
 	invariant(notificationsChannel?.type === ChannelType.GuildText)
 
 	if (doesTaskNeedProof) {
-		const proofDescription = /\*\*Needs Proof:\*\* (.*)/.exec(task.notes)?.[1]
+		const proofDescription = /\*\*Needs Proof:\*\* (.*)/.exec(
+			task.notes ?? ''
+		)?.[1]
 		invariant(proofDescription !== undefined, 'missing proof item')
 		const notificationsChannel = await client.channels.fetch(
 			notificationsChannelId

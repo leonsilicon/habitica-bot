@@ -27,6 +27,14 @@ export const unlinkCommand = defineSlashCommand({
 			},
 		})
 
+		if (user.habiticaUser === null) {
+			await interaction.reply({
+				ephemeral: true,
+				content: 'Successfully unlinked Habitica account.',
+			})
+			return
+		}
+
 		const webhooks = await gotHabitica('GET /api/v3/user/webhook', {
 			apiToken: user.habiticaUser.apiToken,
 			userId: user.habiticaUser.id,

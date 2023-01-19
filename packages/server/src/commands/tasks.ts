@@ -43,6 +43,10 @@ export const tasksCommand = defineSlashCommand({
 			throw new Error('User has set their tasks to private.')
 		}
 
+		if (user.habiticaUser === null) {
+			throw new Error('User does not have a linked Habitica account')
+		}
+
 		await interaction.reply(await createTasksSummaryMessage(user.habiticaUser))
 	},
 })
