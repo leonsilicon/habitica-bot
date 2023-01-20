@@ -1,4 +1,4 @@
-interface HabiticaTask {
+export interface HabiticaTask {
 	repeat: {
 		m: boolean
 		t: boolean

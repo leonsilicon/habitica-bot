@@ -5,6 +5,7 @@ import localizedFormat from 'dayjs/plugin/localizedFormat.js'
 import timezone from 'dayjs/plugin/timezone.js'
 import utc from 'dayjs/plugin/utc.js'
 import {
+	type ColorResolvable,
 	type RESTPostAPIChatInputApplicationCommandsJSONBody,
 	ChannelType,
 	EmbedBuilder,
@@ -238,7 +239,7 @@ app.post('/webhook', async (request, reply) => {
 		value: dayjs().tz().format('LLL'),
 	})
 
-	let taskColor: string
+	let taskColor: ColorResolvable
 	if (data.direction === 'up') {
 		taskColor = doesTaskNeedProof ? 'Orange' : 'Green'
 	} else {
