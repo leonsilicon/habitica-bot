@@ -5,7 +5,7 @@ import { gotHabitica } from '~/utils/habitica.js'
 
 export function isTaskPublic(task: { notes: string }) {
 	const notes = task.notes.toLowerCase()
-	return notes.includes('hidden') || notes.includes('private')
+	return !notes.includes('hidden') && !notes.includes('private')
 }
 
 export async function getPublicTasks(habiticaUser: {
