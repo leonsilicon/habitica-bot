@@ -1,6 +1,6 @@
 import { type BaseMessageOptions, EmbedBuilder } from 'discord.js'
+import pluralize from 'pluralize'
 
-import { type HabiticaTask } from '~/types/habitica.js'
 import { gotHabitica } from '~/utils/habitica.js'
 
 export function isTaskPublic(task: { notes: string }) {
@@ -21,62 +21,40 @@ export async function getPublicTasks(habiticaUser: {
 	return publicTasks
 }
 
-export async function createTasksSummaryMessage(habiticaUser: {
-	apiToken: string
-	id: string
-	name: string
-	username: string
-}): Promise<BaseMessageOptions> {
+export async function createTasksSummaryMessage(
+	habiticaUser: {
+		apiToken: string
+		id: string
+		name: string
+		username: string
+	},
+	options: { taskType: 'habit' | 'todo' | 'daily' }
+): Promise<BaseMessageOptions> {
 	const publicTasks = await getPublicTasks(habiticaUser)
 
-	const createTasksSummary = (tasks: HabiticaTask[]) =>
-		tasks
-			.map(
-				(task) =>
-					`${task.completed ? ':white_check_mark:' : ':white_large_square:'} ${
-						task.text
-					}`
-			)
-			.join('\n')
-	const fields: Array<{ name: string; value: string }> = []
-
-	const habitsSummary = createTasksSummary(
-		publicTasks.filter((task) => task.type === 'habit')
-	)
-	if (habitsSummary !== '') {
-		fields.push({
-			name: 'Habits',
-			value: habitsSummary,
-		})
-	}
-
-	const dailiesSummary = createTasksSummary(
-		publicTasks.filter((task) => task.type === 'daily')
-	)
-	if (dailiesSummary !== '') {
-		fields.push({
-			name: 'Dailies',
-			value: dailiesSummary,
-		})
-	}
-
-	const todosSummary = createTasksSummary(
-		publicTasks.filter((task) => task.type === 'todo')
-	)
-	if (todosSummary !== '') {
-		fields.push({
-			name: 'Todos',
-			value: todosSummary,
-		})
-	}
+	const tasksSummary = publicTasks
+		.filter((task) => task.type === options.taskType)
+		.map(
+			(task) =>
+				`${task.completed ? ':white_check_mark:' : ':white_large_square:'} ${
+					task.text
+				}`
+		)
+		.join('\n')
 
 	return {
 		embeds: [
 			new EmbedBuilder()
 				.setTitle(
-					`Task Summary for ${habiticaUser.name} (@${habiticaUser.username})`
+					`Viewing ${pluralize(options.taskType)} of ${habiticaUser.name} (@${
+						habiticaUser.username
+					})`
 				)
-				.setFields(...fields),
+				.setDescription(
+					tasksSummary === ''
+						? `[no ${pluralize(options.taskType)} found]`
+						: tasksSummary
+				),
 		],
 	}
 }

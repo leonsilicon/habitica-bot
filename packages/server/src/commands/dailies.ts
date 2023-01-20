@@ -5,16 +5,16 @@ import { defineSlashCommand } from '~/utils/command.js'
 import { getPrisma } from '~/utils/prisma.js'
 import { createTasksSummaryMessage } from '~/utils/tasks.js'
 
-export const tasksCommand = defineSlashCommand({
+export const dailiesCommand = defineSlashCommand({
 	data: new SlashCommandBuilder()
-		.setName('tasks')
+		.setName('dailies')
 		.setDescription(
-			"Show a summary of a user's tasks (the user must have set their tasks to public)"
+			"Show a summary of a user's dailies (the user must have set their tasks to public)"
 		)
 		.addUserOption((option) =>
 			option
 				.setName('user')
-				.setDescription('The user whose tasks you want to view')
+				.setDescription('The user whose dailies you want to view')
 				.setRequired(true)
 		),
 	async execute(interaction) {
@@ -47,6 +47,10 @@ export const tasksCommand = defineSlashCommand({
 			throw new Error('User does not have a linked Habitica account')
 		}
 
-		await interaction.reply(await createTasksSummaryMessage(user.habiticaUser))
+		await interaction.reply(
+			await createTasksSummaryMessage(user.habiticaUser, {
+				taskType: 'daily',
+			})
+		)
 	},
 })
