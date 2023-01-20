@@ -23,21 +23,37 @@ export async function createTasksSummaryMessage(habiticaUser: {
 					}`
 			)
 			.join('\n')
+	const fields: Array<{ name: string; value: string }> = []
 
-	const fields: Array<{ name: string; value: string }> = [
-		{
+	const habitsSummary = createTasksSummary(
+		tasks.filter((task) => task.type === 'habit')
+	)
+	if (habitsSummary !== '') {
+		fields.push({
 			name: 'Habits',
-			value: createTasksSummary(tasks.filter((task) => task.type === 'habit')),
-		},
-		{
+			value: habitsSummary,
+		})
+	}
+
+	const dailiesSummary = createTasksSummary(
+		tasks.filter((task) => task.type === 'daily')
+	)
+	if (dailiesSummary !== '') {
+		fields.push({
 			name: 'Dailies',
-			value: createTasksSummary(tasks.filter((task) => task.type === 'daily')),
-		},
-		{
+			value: dailiesSummary,
+		})
+	}
+
+	const todosSummary = createTasksSummary(
+		tasks.filter((task) => task.type === 'todo')
+	)
+	if (todosSummary !== '') {
+		fields.push({
 			name: 'Todos',
-			value: createTasksSummary(tasks.filter((task) => task.type === 'todo')),
-		},
-	]
+			value: todosSummary,
+		})
+	}
 
 	return {
 		embeds: [
