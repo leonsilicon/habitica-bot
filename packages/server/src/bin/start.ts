@@ -25,7 +25,7 @@ import { type SlashCommand } from '~/types/command.js'
 import { type HabiticaRequest } from '~/types/habitica.js'
 import { getDiscordClient } from '~/utils/discord.js'
 import { getPrisma } from '~/utils/prisma.js'
-import { createTasksSummaryMessage } from '~/utils/tasks.js'
+import { createTasksSummaryMessage, isTaskPublic } from '~/utils/tasks.js'
 
 const slashCommandsMap = Object.fromEntries(
 	Object.values(slashCommandsExports).map((slashCommandExport) => [
@@ -182,6 +182,10 @@ app.post('/webhook', async (request, reply) => {
 	console.log('Webhook called with:', request.body)
 	const data = request.body as HabiticaRequest
 	const { task } = data
+
+	if (!isTaskPublic(task)) {
+		return
+	}
 
 	const prisma = await getPrisma()
 	const user = await prisma.user.findUniqueOrThrow({

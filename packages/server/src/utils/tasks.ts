@@ -3,16 +3,31 @@ import { type BaseMessageOptions, EmbedBuilder } from 'discord.js'
 import { type HabiticaTask } from '~/types/habitica.js'
 import { gotHabitica } from '~/utils/habitica.js'
 
+export function isTaskPublic(task: { notes: string }) {
+	const notes = task.notes.toLowerCase()
+	return notes.includes('hidden') || notes.includes('private')
+}
+
+export async function getPublicTasks(habiticaUser: {
+	apiToken: string
+	id: string
+}) {
+	const allTasks = await gotHabitica('GET /api/v3/tasks/user', {
+		apiToken: habiticaUser.apiToken,
+		userId: habiticaUser.id,
+	})
+	const publicTasks = allTasks.filter((task) => isTaskPublic(task))
+
+	return publicTasks
+}
+
 export async function createTasksSummaryMessage(habiticaUser: {
 	apiToken: string
 	id: string
 	name: string
 	username: string
 }): Promise<BaseMessageOptions> {
-	const tasks = await gotHabitica('GET /api/v3/tasks/user', {
-		apiToken: habiticaUser.apiToken,
-		userId: habiticaUser.id,
-	})
+	const publicTasks = await getPublicTasks(habiticaUser)
 
 	const createTasksSummary = (tasks: HabiticaTask[]) =>
 		tasks
@@ -26,7 +41,7 @@ export async function createTasksSummaryMessage(habiticaUser: {
 	const fields: Array<{ name: string; value: string }> = []
 
 	const habitsSummary = createTasksSummary(
-		tasks.filter((task) => task.type === 'habit')
+		publicTasks.filter((task) => task.type === 'habit')
 	)
 	if (habitsSummary !== '') {
 		fields.push({
@@ -36,7 +51,7 @@ export async function createTasksSummaryMessage(habiticaUser: {
 	}
 
 	const dailiesSummary = createTasksSummary(
-		tasks.filter((task) => task.type === 'daily')
+		publicTasks.filter((task) => task.type === 'daily')
 	)
 	if (dailiesSummary !== '') {
 		fields.push({
@@ -46,7 +61,7 @@ export async function createTasksSummaryMessage(habiticaUser: {
 	}
 
 	const todosSummary = createTasksSummary(
-		tasks.filter((task) => task.type === 'todo')
+		publicTasks.filter((task) => task.type === 'todo')
 	)
 	if (todosSummary !== '') {
 		fields.push({
