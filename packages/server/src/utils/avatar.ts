@@ -12,6 +12,14 @@ export function getCachedHabiticaUserAvatar({
 	return avatarCache.get(habiticaUserId)
 }
 
+export function deleteCachedHabiticaUserAvatar({
+	habiticaUserId,
+}: {
+	habiticaUserId: string
+}) {
+	avatarCache.delete(habiticaUserId)
+}
+
 export async function getHabiticaUserAvatar({
 	habiticaUserId,
 	habiticaApiToken,
