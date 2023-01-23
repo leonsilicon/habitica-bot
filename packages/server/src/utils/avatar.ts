@@ -26,7 +26,7 @@ export async function getHabiticaUserAvatar({
 		})
 
 		if (cachedAvatarBase64 !== null) {
-			return Buffer.from(cachedAvatarBase64)
+			return Buffer.from(cachedAvatarBase64, 'base64')
 		}
 	}
 
@@ -85,7 +85,7 @@ export async function getHabiticaUserAvatar({
 			},
 		})
 
-		return Buffer.from(avatarBase64)
+		return Buffer.from(avatarBase64, 'base64')
 	} finally {
 		console.info('Finished fetching Habitica avatar.')
 	}
