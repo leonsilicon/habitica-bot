@@ -7,6 +7,7 @@ import utc from 'dayjs/plugin/utc.js'
 import {
 	type ColorResolvable,
 	type RESTPostAPIChatInputApplicationCommandsJSONBody,
+	AttachmentBuilder,
 	ChannelType,
 	EmbedBuilder,
 	Events,
@@ -23,6 +24,7 @@ import invariant from 'tiny-invariant'
 import * as slashCommandsExports from '~/commands/index.js'
 import { type SlashCommand } from '~/types/command.js'
 import { type HabiticaRequest } from '~/types/habitica.js'
+import { getHabiticaUserAvatar } from '~/utils/avatar.js'
 import { getDiscordClient } from '~/utils/discord.js'
 import { getPrisma } from '~/utils/prisma.js'
 import { createTasksSummaryMessage, isTaskPublic } from '~/utils/tasks.js'
@@ -172,7 +174,11 @@ schedule.scheduleJob(rule, async () => {
 		await Promise.all(
 			users.map(async (user) => {
 				if (user.habiticaUser === null) return
-				await channel.send(await createTasksSummaryMessage(user.habiticaUser))
+				await channel.send(
+					await createTasksSummaryMessage(user.habiticaUser, {
+						taskType: 'daily',
+					})
+				)
 			})
 		)
 	}
@@ -194,6 +200,8 @@ app.post('/webhook', async (request, reply) => {
 			discordUserId: true,
 			habiticaUser: {
 				select: {
+					id: true,
+					apiToken: true,
 					name: true,
 				},
 			},
@@ -250,10 +258,18 @@ app.post('/webhook', async (request, reply) => {
 		taskColor = 'Red'
 	}
 
+	const avatarFile = new AttachmentBuilder(
+		await getHabiticaUserAvatar({
+			habiticaApiToken: user.habiticaUser.apiToken,
+			habiticaUserId: user.habiticaUser.id,
+		}),
+		{ name: 'avatar.jpeg' }
+	)
 	const embed = new EmbedBuilder()
 		.setColor(taskColor)
 		.setTitle(title)
 		.setDescription(description)
+		.setImage('attachment://avatar.jpeg')
 		.addFields(...fields)
 
 	const notificationsChannel = await client.channels.fetch(
@@ -277,6 +293,7 @@ app.post('/webhook', async (request, reply) => {
 		console.info('Sending embed...')
 		await notificationsChannel.send({
 			embeds: [embed],
+			files: [avatarFile],
 		})
 	}
 
