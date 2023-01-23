@@ -285,7 +285,7 @@ app.post('/webhook', async (request, reply) => {
 		.setColor(taskColor)
 		.setTitle(title)
 		.setDescription(description)
-		.setImage('attachment://avatar.jpeg')
+		.setThumbnail('attachment://avatar.jpeg')
 		.addFields(...fields)
 
 	const notificationsChannel = await client.channels.fetch(
