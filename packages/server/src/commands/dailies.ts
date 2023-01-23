@@ -24,15 +24,8 @@ export const dailiesCommand = defineSlashCommand({
 		const prisma = await getPrisma()
 		const user = await prisma.user.findFirstOrThrow({
 			select: {
+				id: true,
 				areTasksPublic: true,
-				habiticaUser: {
-					select: {
-						id: true,
-						apiToken: true,
-						name: true,
-						username: true,
-					},
-				},
 			},
 			where: {
 				discordUserId: discordUser.id,
@@ -43,12 +36,9 @@ export const dailiesCommand = defineSlashCommand({
 			throw new Error('User has set their tasks to private.')
 		}
 
-		if (user.habiticaUser === null) {
-			throw new Error('User does not have a linked Habitica account')
-		}
-
 		await interaction.reply(
-			await createTasksSummaryMessage(user.habiticaUser, {
+			await createTasksSummaryMessage({
+				userId: user.id,
 				taskType: 'daily',
 			})
 		)

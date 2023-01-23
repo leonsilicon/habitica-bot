@@ -7,7 +7,6 @@ import utc from 'dayjs/plugin/utc.js'
 import {
 	type ColorResolvable,
 	type RESTPostAPIChatInputApplicationCommandsJSONBody,
-	AttachmentBuilder,
 	ChannelType,
 	EmbedBuilder,
 	Events,
@@ -24,11 +23,8 @@ import invariant from 'tiny-invariant'
 import * as slashCommandsExports from '~/commands/index.js'
 import { type SlashCommand } from '~/types/command.js'
 import { type HabiticaRequest } from '~/types/habitica.js'
-import {
-	getCachedHabiticaUserAvatar,
-	getHabiticaUserAvatar,
-} from '~/utils/avatar.js'
 import { getDiscordClient } from '~/utils/discord.js'
+import { getHabiticaEmbedThumbnail } from '~/utils/embed.js'
 import { getPrisma } from '~/utils/prisma.js'
 import { getPuppeteerBrowser } from '~/utils/puppeteer.js'
 import { createTasksSummaryMessage, isTaskPublic } from '~/utils/tasks.js'
@@ -176,14 +172,7 @@ schedule.scheduleJob(rule, async () => {
 		const prisma = await getPrisma()
 		const users = await prisma.user.findMany({
 			select: {
-				habiticaUser: {
-					select: {
-						apiToken: true,
-						id: true,
-						name: true,
-						username: true,
-					},
-				},
+				id: true,
 			},
 			where: {
 				areTasksPublic: true,
@@ -192,9 +181,9 @@ schedule.scheduleJob(rule, async () => {
 
 		await Promise.all(
 			users.map(async (user) => {
-				if (user.habiticaUser === null) return
 				await channel.send(
-					await createTasksSummaryMessage(user.habiticaUser, {
+					await createTasksSummaryMessage({
+						userId: user.id,
 						taskType: 'daily',
 					})
 				)
@@ -277,26 +266,11 @@ app.post('/webhook', async (request, reply) => {
 		taskColor = 'Red'
 	}
 
-	let thumbnail: string
-	const files = []
-	const cachedHabiticaUserAvatar = getCachedHabiticaUserAvatar({
+	const { files, thumbnail } = await getHabiticaEmbedThumbnail({
+		habiticaApiToken: user.habiticaUser.apiToken,
+		discordUserId: user.discordUserId,
 		habiticaUserId: user.habiticaUser.id,
 	})
-	if (cachedHabiticaUserAvatar === undefined) {
-		const discordUser = await client.users.fetch(user.discordUserId)
-		thumbnail = discordUser.displayAvatarURL()
-	} else {
-		const avatarFile = new AttachmentBuilder(
-			await getHabiticaUserAvatar({
-				habiticaApiToken: user.habiticaUser.apiToken,
-				habiticaUserId: user.habiticaUser.id,
-			}),
-			{ name: 'avatar.jpeg' }
-		)
-		files.push(avatarFile)
-
-		thumbnail = 'attachment://avatar.jpeg'
-	}
 
 	const embed = new EmbedBuilder()
 		.setColor(taskColor)
