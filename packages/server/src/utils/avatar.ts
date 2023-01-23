@@ -20,17 +20,21 @@ export async function getHabiticaUserAvatar({
 		}
 	}
 
+	console.info('Fetching user avatar...')
 	const browser = await getPuppeteerBrowser()
 	const page = await browser.newPage()
 	await page.goto('https://habitica.com')
-	await page.evaluate(() => {
-		localStorage.setItem(
-			'habit-mobile-settings',
-			JSON.stringify({
-				auth: { apiId: habiticaUserId, apiToken: habiticaApiToken },
-			})
-		)
-	})
+	await page.evaluate(
+		({ habiticaUserId, habiticaApiToken }) => {
+			localStorage.setItem(
+				'habit-mobile-settings',
+				JSON.stringify({
+					auth: { apiId: habiticaUserId, apiToken: habiticaApiToken },
+				})
+			)
+		},
+		{ habiticaUserId, habiticaApiToken }
+	)
 	await page.goto(`https://habitica.com/profile/${habiticaUserId}`)
 	const rect = await page.evaluate(() => {
 		const element = document.querySelector('.avatar')

@@ -16,8 +16,8 @@
 	"type": "module",
 	"scripts": {
 		"build": "ts-node ./scripts/build.ts",
-		"dev": "ts-node ./src/bin/start.ts",
-		"start": "ts-node ./src/bin/start.ts"
+		"dev": "NODE_ENV=development ts-node ./src/bin/start.ts",
+		"start": "NODE_ENV=production ts-node ./src/bin/start.ts"
 	},
 	"devDependencies": {
 		"@types/node-schedule": "^2.1.0",

@@ -30,10 +30,15 @@ import { getPrisma } from '~/utils/prisma.js'
 import { createTasksSummaryMessage, isTaskPublic } from '~/utils/tasks.js'
 
 const slashCommandsMap = Object.fromEntries(
-	Object.values(slashCommandsExports).map((slashCommandExport) => [
-		slashCommandExport.data.name,
-		slashCommandExport,
-	])
+	Object.values(slashCommandsExports).map((slashCommandExport) => {
+		if (process.env.NODE_ENV === 'development') {
+			slashCommandExport.data.setName!(
+				slashCommandExport.data.name! + '-development'
+			)
+		}
+
+		return [slashCommandExport.data.name, slashCommandExport]
+	})
 ) as Record<string, SlashCommand>
 
 dayjs.extend(utc)
@@ -53,7 +58,11 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!)
 const slashCommandsJson: RESTPostAPIChatInputApplicationCommandsJSONBody[] = []
 for (const slashCommand of Object.values(slashCommandsMap)) {
 	invariant(slashCommand.data.toJSON !== undefined)
+	invariant(slashCommand.data.setName !== undefined)
 	try {
+		const commandName = slashCommand.data.name
+		invariant(commandName !== undefined)
+
 		slashCommandsJson.push(slashCommand.data.toJSON())
 	} catch (error: unknown) {
 		console.error(
@@ -91,10 +100,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
 		await command.execute(interaction)
 	} catch (error: unknown) {
 		console.error('Interaction failed:', error)
-		await interaction.reply({
-			ephemeral: true,
-			content: `An error occurred: ${(error as { message: string }).message}`,
-		})
+		if (interaction.deferred || interaction.replied) {
+			await interaction.editReply({
+				content: `An error occurred: ${(error as { message: string }).message}`,
+			})
+		} else {
+			await interaction.reply({
+				ephemeral: true,
+				content: `An error occurred: ${(error as { message: string }).message}`,
+			})
+		}
 	}
 })
 
@@ -307,3 +322,10 @@ app.listen({ port: 3000 }, (err, address) => {
 
 invariant(process.env.DISCORD_TOKEN !== undefined)
 await client.login(process.env.DISCORD_TOKEN)
+
+process.on('uncaughtException', (error) => {
+	console.error(error)
+})
+process.on('unhandledRejection', (error) => {
+	console.error(error)
+})

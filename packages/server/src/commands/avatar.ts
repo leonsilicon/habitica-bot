@@ -33,18 +33,17 @@ export const avatarCommand = defineSlashCommand({
 			throw new Error('User does not have a linked Habitica account')
 		}
 
+		await interaction.deferReply()
 		const avatarBuffer = await getHabiticaUserAvatar({
 			habiticaApiToken: habiticaUser.apiToken,
 			habiticaUserId: habiticaUser.id,
 			force: true,
 		})
-
-		await interaction.reply({
-			content: 'Avatar successfully updated!',
+		await interaction.editReply({
+			content: `Habitica avatar successfully updated!`,
 			files: [
 				new AttachmentBuilder(avatarBuffer, {
 					name: 'avatar.jpeg',
-					description: 'Habitica Avatar',
 				}),
 			],
 		})

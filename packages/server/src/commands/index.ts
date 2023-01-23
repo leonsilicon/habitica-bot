@@ -1,3 +1,4 @@
+export * from './avatar.js'
 export * from './dailies.js'
 export * from './habits.js'
 export * from './link.js'
