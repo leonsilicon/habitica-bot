@@ -4,6 +4,14 @@ import { getPuppeteerBrowser } from './puppeteer.js'
 
 const avatarCache = new Map<string, Buffer>()
 
+export function getCachedHabiticaUserAvatar({
+	habiticaUserId,
+}: {
+	habiticaUserId: string
+}) {
+	return avatarCache.get(habiticaUserId)
+}
+
 export async function getHabiticaUserAvatar({
 	habiticaUserId,
 	habiticaApiToken,

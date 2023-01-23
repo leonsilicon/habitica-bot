@@ -24,7 +24,10 @@ import invariant from 'tiny-invariant'
 import * as slashCommandsExports from '~/commands/index.js'
 import { type SlashCommand } from '~/types/command.js'
 import { type HabiticaRequest } from '~/types/habitica.js'
-import { getHabiticaUserAvatar } from '~/utils/avatar.js'
+import {
+	getCachedHabiticaUserAvatar,
+	getHabiticaUserAvatar,
+} from '~/utils/avatar.js'
 import { getDiscordClient } from '~/utils/discord.js'
 import { getPrisma } from '~/utils/prisma.js'
 import { getPuppeteerBrowser } from '~/utils/puppeteer.js'
@@ -274,18 +277,32 @@ app.post('/webhook', async (request, reply) => {
 		taskColor = 'Red'
 	}
 
-	const avatarFile = new AttachmentBuilder(
-		await getHabiticaUserAvatar({
-			habiticaApiToken: user.habiticaUser.apiToken,
-			habiticaUserId: user.habiticaUser.id,
-		}),
-		{ name: 'avatar.jpeg' }
-	)
+	let thumbnail: string
+	const files = []
+	const cachedHabiticaUserAvatar = getCachedHabiticaUserAvatar({
+		habiticaUserId: user.habiticaUser.id,
+	})
+	if (cachedHabiticaUserAvatar === undefined) {
+		const discordUser = await client.users.fetch(user.discordUserId)
+		thumbnail = discordUser.displayAvatarURL()
+	} else {
+		const avatarFile = new AttachmentBuilder(
+			await getHabiticaUserAvatar({
+				habiticaApiToken: user.habiticaUser.apiToken,
+				habiticaUserId: user.habiticaUser.id,
+			}),
+			{ name: 'avatar.jpeg' }
+		)
+		files.push(avatarFile)
+
+		thumbnail = 'attachment://avatar.jpeg'
+	}
+
 	const embed = new EmbedBuilder()
 		.setColor(taskColor)
 		.setTitle(title)
 		.setDescription(description)
-		.setThumbnail('attachment://avatar.jpeg')
+		.setThumbnail(thumbnail)
 		.addFields(...fields)
 
 	const notificationsChannel = await client.channels.fetch(
@@ -309,7 +326,7 @@ app.post('/webhook', async (request, reply) => {
 		console.info('Sending embed...')
 		await notificationsChannel.send({
 			embeds: [embed],
-			files: [avatarFile],
+			files,
 		})
 	}
 
