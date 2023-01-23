@@ -31,9 +31,12 @@ export async function getHabiticaEmbedThumbnail({
 		const discordUser = await client.users.fetch(discordUserId)
 		thumbnail = discordUser.displayAvatarURL()
 	} else {
-		const avatarFile = new AttachmentBuilder(Buffer.from(cachedAvatarBase64), {
-			name: 'avatar.jpeg',
-		})
+		const avatarFile = new AttachmentBuilder(
+			Buffer.from(cachedAvatarBase64, 'base64'),
+			{
+				name: 'avatar.jpeg',
+			}
+		)
 		files.push(avatarFile)
 
 		thumbnail = 'attachment://avatar.jpeg'
