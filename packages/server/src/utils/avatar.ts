@@ -1,24 +1,6 @@
-import type { Buffer } from 'node:buffer'
+import { getPrisma } from '~/utils/prisma.js'
 
 import { getPuppeteerBrowser } from './puppeteer.js'
-
-const avatarCache = new Map<string, Buffer>()
-
-export function getCachedHabiticaUserAvatar({
-	habiticaUserId,
-}: {
-	habiticaUserId: string
-}) {
-	return avatarCache.get(habiticaUserId)
-}
-
-export function deleteCachedHabiticaUserAvatar({
-	habiticaUserId,
-}: {
-	habiticaUserId: string
-}) {
-	avatarCache.delete(habiticaUserId)
-}
 
 export async function getHabiticaUserAvatar({
 	habiticaUserId,
@@ -28,11 +10,21 @@ export async function getHabiticaUserAvatar({
 	habiticaUserId: string
 	habiticaApiToken: string
 	force?: boolean
-}) {
+}): Promise<string> {
+	const prisma = await getPrisma()
+
 	if (!force) {
-		const cachedAvatar = avatarCache.get(habiticaUserId)
-		if (cachedAvatar !== undefined) {
-			return cachedAvatar
+		const { cachedAvatarBase64 } = await prisma.habiticaUser.findUniqueOrThrow({
+			select: {
+				cachedAvatarBase64: true,
+			},
+			where: {
+				id: habiticaUserId,
+			},
+		})
+
+		if (cachedAvatarBase64 !== null) {
+			return cachedAvatarBase64
 		}
 	}
 
@@ -69,8 +61,8 @@ export async function getHabiticaUserAvatar({
 			throw new Error('Avatar could not be loaded.')
 		}
 
-		const avatarBuffer = (await page.screenshot({
-			encoding: 'binary',
+		const avatarBase64 = (await page.screenshot({
+			encoding: 'base64',
 			type: 'jpeg',
 			clip: {
 				x: rect.left,
@@ -78,12 +70,20 @@ export async function getHabiticaUserAvatar({
 				width: rect.width,
 				height: rect.height,
 			},
-		})) as Buffer
+		})) as string
 
 		await page.close()
 
-		avatarCache.set(habiticaUserId, avatarBuffer)
-		return avatarBuffer
+		await prisma.habiticaUser.update({
+			data: {
+				cachedAvatarBase64: avatarBase64,
+			},
+			where: {
+				id: habiticaUserId,
+			},
+		})
+
+		return avatarBase64
 	} finally {
 		console.info('Finished fetching Habitica avatar.')
 	}

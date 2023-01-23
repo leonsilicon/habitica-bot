@@ -1,9 +1,6 @@
 import { AttachmentBuilder, SlashCommandBuilder } from 'discord.js'
 
-import {
-	deleteCachedHabiticaUserAvatar,
-	getHabiticaUserAvatar,
-} from '~/utils/avatar.js'
+import { getHabiticaUserAvatar } from '~/utils/avatar.js'
 import { defineSlashCommand } from '~/utils/command.js'
 import { getPrisma } from '~/utils/prisma.js'
 
@@ -23,11 +20,11 @@ export const avatarCommand = defineSlashCommand({
 		const subcommand = interaction.options.getSubcommand()
 		if (subcommand === 'delete') {
 			const prisma = await getPrisma()
-			const { habiticaUser } = await prisma.user.findFirstOrThrow({
-				select: {
+			await prisma.user.update({
+				data: {
 					habiticaUser: {
-						select: {
-							id: true,
+						update: {
+							cachedAvatarBase64: null,
 						},
 					},
 				},
@@ -35,12 +32,6 @@ export const avatarCommand = defineSlashCommand({
 					discordUserId: interaction.user.id,
 				},
 			})
-
-			if (habiticaUser === null) {
-				throw new Error('User does not have a linked Habitica account')
-			}
-
-			deleteCachedHabiticaUserAvatar({ habiticaUserId: habiticaUser.id })
 
 			await interaction.reply({
 				content: 'Habitica Avatar successfully deleted!',
@@ -71,7 +62,7 @@ export const avatarCommand = defineSlashCommand({
 			await interaction.deferReply({
 				ephemeral: true,
 			})
-			const avatarBuffer = await getHabiticaUserAvatar({
+			const avatarBase64 = await getHabiticaUserAvatar({
 				habiticaApiToken: habiticaUser.apiToken,
 				habiticaUserId: habiticaUser.id,
 				force: true,
@@ -79,7 +70,7 @@ export const avatarCommand = defineSlashCommand({
 			await interaction.editReply({
 				content: `Habitica avatar successfully updated!`,
 				files: [
-					new AttachmentBuilder(avatarBuffer, {
+					new AttachmentBuilder(avatarBase64, {
 						name: 'avatar.jpeg',
 					}),
 				],

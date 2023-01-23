@@ -1,10 +1,8 @@
 import { AttachmentBuilder } from 'discord.js'
 
-import {
-	getCachedHabiticaUserAvatar,
-	getHabiticaUserAvatar,
-} from '~/utils/avatar.js'
+import { getHabiticaUserAvatar } from '~/utils/avatar.js'
 import { getDiscordClient } from '~/utils/discord.js'
+import { getPrisma } from '~/utils/prisma.js'
 
 export async function getHabiticaEmbedThumbnail({
 	discordUserId,
@@ -20,11 +18,17 @@ export async function getHabiticaEmbedThumbnail({
 }> {
 	let thumbnail: string
 	const files: AttachmentBuilder[] = []
-	const cachedHabiticaUserAvatar = getCachedHabiticaUserAvatar({
-		habiticaUserId,
+	const prisma = await getPrisma()
+	const { cachedAvatarBase64 } = await prisma.habiticaUser.findUniqueOrThrow({
+		select: {
+			cachedAvatarBase64: true,
+		},
+		where: {
+			id: habiticaUserId,
+		},
 	})
 	const client = getDiscordClient()
-	if (cachedHabiticaUserAvatar === undefined) {
+	if (cachedAvatarBase64 === null) {
 		const discordUser = await client.users.fetch(discordUserId)
 		thumbnail = discordUser.displayAvatarURL()
 	} else {

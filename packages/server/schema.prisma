@@ -28,4 +28,5 @@ model HabiticaUser {
   apiToken String
   name     String
   username String
+	cachedAvatarBase64 String?
 }
