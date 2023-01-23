@@ -1,17 +1,16 @@
+import { Buffer } from 'node:buffer'
+
 import { AttachmentBuilder } from 'discord.js'
 
-import { getHabiticaUserAvatar } from '~/utils/avatar.js'
 import { getDiscordClient } from '~/utils/discord.js'
 import { getPrisma } from '~/utils/prisma.js'
 
 export async function getHabiticaEmbedThumbnail({
 	discordUserId,
 	habiticaUserId,
-	habiticaApiToken,
 }: {
 	discordUserId: string
 	habiticaUserId: string
-	habiticaApiToken: string
 }): Promise<{
 	thumbnail: string
 	files: AttachmentBuilder[]
@@ -32,13 +31,9 @@ export async function getHabiticaEmbedThumbnail({
 		const discordUser = await client.users.fetch(discordUserId)
 		thumbnail = discordUser.displayAvatarURL()
 	} else {
-		const avatarFile = new AttachmentBuilder(
-			await getHabiticaUserAvatar({
-				habiticaApiToken,
-				habiticaUserId,
-			}),
-			{ name: 'avatar.jpeg' }
-		)
+		const avatarFile = new AttachmentBuilder(Buffer.from(cachedAvatarBase64), {
+			name: 'avatar.jpeg',
+		})
 		files.push(avatarFile)
 
 		thumbnail = 'attachment://avatar.jpeg'

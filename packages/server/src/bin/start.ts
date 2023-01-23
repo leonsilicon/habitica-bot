@@ -267,7 +267,6 @@ app.post('/webhook', async (request, reply) => {
 	}
 
 	const { files, thumbnail } = await getHabiticaEmbedThumbnail({
-		habiticaApiToken: user.habiticaUser.apiToken,
 		discordUserId: user.discordUserId,
 		habiticaUserId: user.habiticaUser.id,
 	})

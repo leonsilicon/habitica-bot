@@ -1,3 +1,5 @@
+import { Buffer } from 'node:buffer'
+
 import { getPrisma } from '~/utils/prisma.js'
 
 import { getPuppeteerBrowser } from './puppeteer.js'
@@ -10,7 +12,7 @@ export async function getHabiticaUserAvatar({
 	habiticaUserId: string
 	habiticaApiToken: string
 	force?: boolean
-}): Promise<string> {
+}): Promise<Buffer> {
 	const prisma = await getPrisma()
 
 	if (!force) {
@@ -24,7 +26,7 @@ export async function getHabiticaUserAvatar({
 		})
 
 		if (cachedAvatarBase64 !== null) {
-			return cachedAvatarBase64
+			return Buffer.from(cachedAvatarBase64)
 		}
 	}
 
@@ -83,7 +85,7 @@ export async function getHabiticaUserAvatar({
 			},
 		})
 
-		return avatarBase64
+		return Buffer.from(avatarBase64)
 	} finally {
 		console.info('Finished fetching Habitica avatar.')
 	}

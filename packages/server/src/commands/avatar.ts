@@ -62,7 +62,7 @@ export const avatarCommand = defineSlashCommand({
 			await interaction.deferReply({
 				ephemeral: true,
 			})
-			const avatarBase64 = await getHabiticaUserAvatar({
+			const avatarBuffer = await getHabiticaUserAvatar({
 				habiticaApiToken: habiticaUser.apiToken,
 				habiticaUserId: habiticaUser.id,
 				force: true,
@@ -70,7 +70,7 @@ export const avatarCommand = defineSlashCommand({
 			await interaction.editReply({
 				content: `Habitica avatar successfully updated!`,
 				files: [
-					new AttachmentBuilder(avatarBase64, {
+					new AttachmentBuilder(avatarBuffer, {
 						name: 'avatar.jpeg',
 					}),
 				],
