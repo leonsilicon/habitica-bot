@@ -27,6 +27,7 @@ import { type HabiticaRequest } from '~/types/habitica.js'
 import { getHabiticaUserAvatar } from '~/utils/avatar.js'
 import { getDiscordClient } from '~/utils/discord.js'
 import { getPrisma } from '~/utils/prisma.js'
+import { getPuppeteerBrowser } from '~/utils/puppeteer.js'
 import { createTasksSummaryMessage, isTaskPublic } from '~/utils/tasks.js'
 
 const slashCommandsMap = Object.fromEntries(
@@ -320,7 +321,11 @@ app.listen({ port: 3000 }, (err, address) => {
 	console.info(`Server listening on ${address}`)
 })
 
+// Launch the Puppeteer browser for faster browser operations in future
+void getPuppeteerBrowser()
+
 invariant(process.env.DISCORD_TOKEN !== undefined)
+
 await client.login(process.env.DISCORD_TOKEN)
 
 process.on('uncaughtException', (error) => {

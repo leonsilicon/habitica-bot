@@ -33,7 +33,9 @@ export const avatarCommand = defineSlashCommand({
 			throw new Error('User does not have a linked Habitica account')
 		}
 
-		await interaction.deferReply()
+		await interaction.deferReply({
+			ephemeral: true,
+		})
 		const avatarBuffer = await getHabiticaUserAvatar({
 			habiticaApiToken: habiticaUser.apiToken,
 			habiticaUserId: habiticaUser.id,
