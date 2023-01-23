@@ -71,7 +71,13 @@ export async function createTasksSummaryMessage({
 	})
 
 	const tasksSummary = publicTasks
-		.filter((task) => task.type === taskType)
+		.filter((task) => {
+			if (task.type !== taskType) return false
+
+			if (taskType === 'daily' && !task.isDue) return false
+
+			return true
+		})
 		.map(
 			(task) =>
 				`${task.completed ? ':white_check_mark:' : ':white_large_square:'} ${
