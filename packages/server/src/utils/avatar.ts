@@ -4,6 +4,7 @@ import getPixels from 'get-pixels'
 import GifEncoder from 'gif-encoder'
 import { WritableStream } from 'memory-streams'
 import { type NdArray } from 'ndarray'
+import invariant from 'tiny-invariant'
 
 import { getDiscordClient } from '~/utils/discord.js'
 import { getPrisma } from '~/utils/prisma.js'
@@ -124,19 +125,15 @@ export async function updateHabiticaUserAvatar({
 				}, 300)
 			})
 
-			const gifBuffers = []
 			for (let i = 0; i < 31; i += 1) {
 				gif.addFrame(frames[i])
-				// We need to call .read() to flush the internal buffer so we don't run out of memory
-				const bytes = gif.read()
-				if (bytes !== null) {
-					gifBuffers.push(bytes)
-				}
 			}
 
 			gif.finish()
 
-			avatarBase64 = Buffer.concat(gifBuffers).toString('base64')
+			const gifBuffer = gif.read()
+			invariant(gifBuffer !== null)
+			avatarBase64 = gifBuffer.toString('base64')
 		} else {
 			avatarBase64 = (await page.screenshot({
 				encoding: 'base64',
