@@ -2,6 +2,7 @@ import { Buffer } from 'node:buffer'
 
 import getPixels from 'get-pixels'
 import GifEncoder from 'gif-encoder'
+import { type NdArray } from 'ndarray'
 import invariant from 'tiny-invariant'
 
 import { getDiscordClient } from '~/utils/discord.js'
@@ -97,10 +98,17 @@ export async function updateHabiticaUserAvatar({
 							},
 						})) as Buffer
 
-						const pixels = await new Promise((r) => {
-							getPixels(pngBuffer, 'image/jpeg', r)
+						const pixels = await new Promise<NdArray>((resolve, reject) => {
+							getPixels(pngBuffer, 'image/jpeg', (err, result) => {
+								if (err) {
+									reject(err)
+									return
+								}
+
+								resolve(result)
+							})
 						})
-						frames[frame] = pixels
+						frames[frame] = pixels.data
 
 						console.info(`Finished capturing GIF frame ${frame}!`)
 

@@ -49,6 +49,7 @@
 		"@types/get-pixels": "^3.3.2",
 		"@types/gif-encoder": "^0.7.1",
 		"@types/gifencoder": "^2.0.1",
+		"@types/ndarray": "^1.0.11",
 		"@types/node-schedule": "^2.1.0",
 		"@types/pluralize": "^0.0.29",
 		"@types/pngjs": "^6.0.1",
