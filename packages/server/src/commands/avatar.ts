@@ -1,8 +1,10 @@
 import { AttachmentBuilder, SlashCommandBuilder } from 'discord.js'
 
-import { getHabiticaUserAvatar } from '~/utils/avatar.js'
+import {
+	getHabiticaUserAvatarWithFallback,
+	updateHabiticaUserAvatar,
+} from '~/utils/avatar.js'
 import { defineSlashCommand } from '~/utils/command.js'
-import { getHabiticaEmbedThumbnail } from '~/utils/embed.js'
 import { getPrisma } from '~/utils/prisma.js'
 
 export const avatarCommand = defineSlashCommand({
@@ -81,17 +83,16 @@ export const avatarCommand = defineSlashCommand({
 				await interaction.deferReply({
 					ephemeral: true,
 				})
-				const avatar = await getHabiticaUserAvatar({
+				const avatarBuffer = await updateHabiticaUserAvatar({
 					habiticaApiToken: habiticaUser.apiToken,
 					habiticaUserId: habiticaUser.id,
 					animated,
-					force: true,
 				})
 				await interaction.editReply({
 					content: `Habitica avatar successfully updated!`,
 					files: [
-						new AttachmentBuilder(avatar.data, {
-							name: avatar.isAnimated ? 'avatar.gif' : 'avatar.jpeg',
+						new AttachmentBuilder(avatarBuffer, {
+							name: animated ? 'avatar.gif' : 'avatar.jpeg',
 						}),
 					],
 				})
@@ -120,12 +121,24 @@ export const avatarCommand = defineSlashCommand({
 					throw new Error('User does not have a linked Habitica account')
 				}
 
-				const { files } = await getHabiticaEmbedThumbnail({
+				const avatar = await getHabiticaUserAvatarWithFallback({
 					discordUserId: interaction.user.id,
-					habiticaUserId: habiticaUser.id,
 				})
+				if ('url' in avatar) {
+					await interaction.reply({
+						content: avatar.url,
+					})
+				} else {
+					await interaction.reply({
+						content: 'Avatar',
+						files: [
+							new AttachmentBuilder(avatar.data, {
+								name: avatar.isAnimated ? 'avatar.gif' : 'avatar.jpeg',
+							}),
+						],
+					})
+				}
 
-				await interaction.reply({ files })
 				break
 			}
 

@@ -4,44 +4,21 @@ import GifEncoder from 'gifencoder'
 // @ts-expect-error: no types
 import PNG from 'png-js'
 
+import { getDiscordClient } from '~/utils/discord.js'
 import { getPrisma } from '~/utils/prisma.js'
 
 import { getPuppeteerBrowser } from './puppeteer.js'
 
-export async function getHabiticaUserAvatar({
+export async function updateHabiticaUserAvatar({
 	habiticaUserId,
 	habiticaApiToken,
 	animated,
-	force,
-	cacheOnly,
 }: {
 	habiticaUserId: string
 	habiticaApiToken: string
-	animated?: boolean
-	force?: boolean
-	cacheOnly?: boolean
-}): Promise<{ isAnimated: boolean; data: Buffer }> {
+	animated: boolean
+}): Promise<Buffer> {
 	const prisma = await getPrisma()
-
-	if (!force) {
-		const { avatar } = await prisma.habiticaUser.findUniqueOrThrow({
-			select: {
-				avatar: true,
-			},
-			where: {
-				id: habiticaUserId,
-			},
-		})
-
-		if (avatar !== null) {
-			return {
-				isAnimated: avatar.isAnimated,
-				data: Buffer.from(avatar.base64Data, 'base64'),
-			}
-		} else if (cacheOnly) {
-			return null!
-		}
-	}
 
 	try {
 		console.info('Fetching user avatar with Puppeteer...')
@@ -166,11 +143,39 @@ export async function getHabiticaUserAvatar({
 			},
 		})
 
-		return {
-			isAnimated: animated ?? false,
-			data: Buffer.from(avatarBase64, 'base64'),
-		}
+		return Buffer.from(avatarBase64, 'base64')
 	} finally {
 		console.info('Finished fetching Habitica avatar.')
+	}
+}
+
+export async function getHabiticaUserAvatarWithFallback({
+	discordUserId,
+}: {
+	discordUserId: string
+}): Promise<{ isAnimated: boolean; data: Buffer } | { url: string }> {
+	const prisma = await getPrisma()
+	const { habiticaUser } = await prisma.user.findUniqueOrThrow({
+		select: {
+			habiticaUser: {
+				select: {
+					avatar: true,
+				},
+			},
+		},
+		where: {
+			discordUserId,
+		},
+	})
+
+	const client = getDiscordClient()
+	if (habiticaUser?.avatar) {
+		return {
+			isAnimated: habiticaUser.avatar.isAnimated,
+			data: Buffer.from(habiticaUser.avatar.base64Data, 'base64'),
+		}
+	} else {
+		const discordUser = await client.users.fetch(discordUserId)
+		return { url: discordUser.displayAvatarURL() }
 	}
 }
