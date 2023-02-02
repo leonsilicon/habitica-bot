@@ -144,6 +144,8 @@ export async function updateHabiticaUserAvatar({
 		})
 
 		return Buffer.from(avatarBase64, 'base64')
+	} catch (error) {
+		console.error('Error fetching avatar:', error)
 	} finally {
 		console.info('Finished fetching Habitica avatar.')
 	}
