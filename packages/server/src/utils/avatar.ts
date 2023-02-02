@@ -135,7 +135,7 @@ export async function updateHabiticaUserAvatar({
 		await prisma.habiticaUser.update({
 			data: {
 				avatar: {
-					update: {
+					create: {
 						base64Data: avatarBase64,
 						isAnimated: animated,
 					},
