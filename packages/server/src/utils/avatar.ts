@@ -125,6 +125,8 @@ export async function updateHabiticaUserAvatar({
 
 			for (let i = 0; i < 31; i += 1) {
 				gif.addFrame(frames[i])
+				// We need to flush the internal buffer so we don't run out of memory
+				gif.flushData()
 			}
 
 			gif.finish()
