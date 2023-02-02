@@ -130,7 +130,7 @@ export const avatarCommand = defineSlashCommand({
 					})
 				} else {
 					await interaction.reply({
-						content: 'Avatar',
+						content: `${habiticaUser.name} (@${habiticaUser.username})'s Avatar`,
 						files: [
 							new AttachmentBuilder(avatar.data, {
 								name: avatar.isAnimated ? 'avatar.gif' : 'avatar.jpeg',
