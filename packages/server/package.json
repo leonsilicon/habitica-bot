@@ -25,6 +25,7 @@
 		"discord.js": "^14.7.1",
 		"dotenv": "^16.0.3",
 		"fastify": "^4.11.0",
+		"get-pixels": "^3.3.3",
 		"gif-encoder": "^0.7.2",
 		"got": "^12.5.3",
 		"just-capitalize": "^3.2.0",
@@ -45,6 +46,7 @@
 		"yn": "^5.0.0"
 	},
 	"devDependencies": {
+		"@types/get-pixels": "^3.3.2",
 		"@types/gif-encoder": "^0.7.1",
 		"@types/gifencoder": "^2.0.1",
 		"@types/node-schedule": "^2.1.0",

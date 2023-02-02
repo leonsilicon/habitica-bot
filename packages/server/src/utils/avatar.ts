@@ -1,8 +1,7 @@
 import { Buffer } from 'node:buffer'
 
+import getPixels from 'get-pixels'
 import GifEncoder from 'gif-encoder'
-// @ts-expect-error: no types
-import PNG from 'png-js'
 import invariant from 'tiny-invariant'
 
 import { getDiscordClient } from '~/utils/discord.js'
@@ -87,7 +86,7 @@ export async function updateHabiticaUserAvatar({
 					}
 
 					;(async () => {
-						const pngBuffer = await page.screenshot({
+						const pngBuffer = (await page.screenshot({
 							encoding: 'binary',
 							type: 'jpeg',
 							clip: {
@@ -96,9 +95,11 @@ export async function updateHabiticaUserAvatar({
 								width: rect.width,
 								height: rect.height,
 							},
-						})
+						})) as Buffer
 
-						const pixels = await new PNG(pngBuffer).decode()
+						const pixels = await new Promise((r) => {
+							getPixels(pngBuffer, 'image/jpeg', r)
+						})
 						frames[frame] = pixels
 
 						console.info(`Finished capturing GIF frame ${frame}!`)
@@ -111,6 +112,10 @@ export async function updateHabiticaUserAvatar({
 					frameNumber += 1
 				}, 300)
 			})
+
+			for (let i = 0; i < 31; i += 1) {
+				encoder.addFrame(frames[i])
+			}
 
 			encoder.finish()
 			const bytes = encoder.read()
