@@ -28,5 +28,14 @@ model HabiticaUser {
   apiToken String
   name     String
   username String
-	cachedAvatarBase64 String?
+
+  avatar HabiticaUserAvatar? @relation("habiticaUserAvatar")
+}
+
+model HabiticaUserAvatar {
+  user   HabiticaUser @relation(name: "habiticaUserAvatar", fields: [userId], references: [id], onDelete: Cascade)
+  userId String       @unique
+
+  base64Data String
+  isAnimated Boolean
 }

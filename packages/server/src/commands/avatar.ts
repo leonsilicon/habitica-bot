@@ -9,7 +9,15 @@ export const avatarCommand = defineSlashCommand({
 		.setName('avatar')
 		.setDescription('Commands related to your Habitica avatar')
 		.addSubcommand((subcommand) =>
-			subcommand.setName('update').setDescription('Update your cached avatar')
+			subcommand
+				.setName('update')
+				.setDescription('Update your cached avatar')
+				.addBooleanOption((option) =>
+					option
+						.setName('animated')
+						.setDescription('Whether or not your avatar is animated')
+						.setRequired(false)
+				)
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
@@ -24,7 +32,9 @@ export const avatarCommand = defineSlashCommand({
 				data: {
 					habiticaUser: {
 						update: {
-							cachedAvatarBase64: null,
+							avatar: {
+								delete: true,
+							},
 						},
 					},
 				},
@@ -37,7 +47,10 @@ export const avatarCommand = defineSlashCommand({
 				content: 'Habitica Avatar successfully deleted!',
 				ephemeral: true,
 			})
-		} else {
+		}
+		// User ran `/avatar update [animated]`
+		else {
+			const animated = interaction.options.getBoolean('animated') ?? false
 			const prisma = await getPrisma()
 			const { habiticaUser } = await prisma.user.findFirstOrThrow({
 				select: {
@@ -62,16 +75,17 @@ export const avatarCommand = defineSlashCommand({
 			await interaction.deferReply({
 				ephemeral: true,
 			})
-			const avatarBuffer = await getHabiticaUserAvatar({
+			const avatar = await getHabiticaUserAvatar({
 				habiticaApiToken: habiticaUser.apiToken,
 				habiticaUserId: habiticaUser.id,
+				animated,
 				force: true,
 			})
 			await interaction.editReply({
 				content: `Habitica avatar successfully updated!`,
 				files: [
-					new AttachmentBuilder(avatarBuffer, {
-						name: 'avatar.jpeg',
+					new AttachmentBuilder(avatar.data, {
+						name: avatar.isAnimated ? 'avatar.gif' : 'avatar.jpeg',
 					}),
 				],
 			})

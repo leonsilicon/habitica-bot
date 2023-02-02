@@ -1,5 +1,9 @@
 import { Buffer } from 'node:buffer'
 
+import GifEncoder from 'gifencoder'
+// @ts-expect-error: no types
+import PNG from 'png-js'
+
 import { getPrisma } from '~/utils/prisma.js'
 
 import { getPuppeteerBrowser } from './puppeteer.js'
@@ -7,26 +11,31 @@ import { getPuppeteerBrowser } from './puppeteer.js'
 export async function getHabiticaUserAvatar({
 	habiticaUserId,
 	habiticaApiToken,
+	animated,
 	force,
 }: {
 	habiticaUserId: string
 	habiticaApiToken: string
+	animated: boolean
 	force?: boolean
-}): Promise<Buffer> {
+}): Promise<{ isAnimated: boolean; data: Buffer }> {
 	const prisma = await getPrisma()
 
 	if (!force) {
-		const { cachedAvatarBase64 } = await prisma.habiticaUser.findUniqueOrThrow({
+		const { avatar } = await prisma.habiticaUser.findUniqueOrThrow({
 			select: {
-				cachedAvatarBase64: true,
+				avatar: true,
 			},
 			where: {
 				id: habiticaUserId,
 			},
 		})
 
-		if (cachedAvatarBase64 !== null) {
-			return Buffer.from(cachedAvatarBase64, 'base64')
+		if (avatar !== null) {
+			return {
+				isAnimated: avatar.isAnimated,
+				data: Buffer.from(avatar.base64Data, 'base64'),
+			}
 		}
 	}
 
@@ -49,6 +58,15 @@ export async function getHabiticaUserAvatar({
 		await page.goto(`https://habitica.com/profile/${habiticaUserId}`, {
 			waitUntil: 'networkidle0',
 		})
+
+		// We remove all the modals from the DOM that might interfere with our screenshot
+		await page.evaluate(() => {
+			const elements = document.querySelectorAll('[id*="_modal_outer_"]')
+			for (const element of elements) {
+				element.parentNode?.removeChild(element)
+			}
+		})
+
 		const rect = await page.evaluate(() => {
 			const element = document.querySelector('.avatar')
 			if (element === null) {
@@ -63,29 +81,86 @@ export async function getHabiticaUserAvatar({
 			throw new Error('Avatar could not be loaded.')
 		}
 
-		const avatarBase64 = (await page.screenshot({
-			encoding: 'base64',
-			type: 'jpeg',
-			clip: {
-				x: rect.left,
-				y: rect.top,
-				width: rect.width,
-				height: rect.height,
-			},
-		})) as string
+		let avatarBase64: string
+		if (animated) {
+			const encoder = new GifEncoder(rect.width, rect.height)
+
+			// 24 frames total, 7200ms length
+			// Manually measured to be 300ms per frame
+			encoder.start()
+			encoder.setDelay(300)
+			encoder.setRepeat(0)
+
+			let frameNumber = 0
+			const frames: Record<number, any> = {}
+
+			await new Promise<void>((resolve) => {
+				// Take a screenshot every 300 milliseconds
+				const interval = setInterval(() => {
+					const frame = frameNumber
+
+					if (frame === 32) {
+						clearInterval(interval)
+					}
+
+					;(async () => {
+						const pngBuffer = await page.screenshot({
+							encoding: 'binary',
+							type: 'jpeg',
+							clip: {
+								x: rect.left,
+								y: rect.top,
+								width: rect.width,
+								height: rect.height,
+							},
+						})
+
+						const pixels = await new PNG(pngBuffer).decode()
+						frames[frame] = pixels
+						if (frame === 32) {
+							resolve()
+						}
+					})()
+
+					frameNumber += 1
+				}, 300)
+			})
+
+			encoder.finish()
+			avatarBase64 = encoder.out.getData().toString('base64')
+		} else {
+			avatarBase64 = (await page.screenshot({
+				encoding: 'base64',
+				type: 'jpeg',
+				clip: {
+					x: rect.left,
+					y: rect.top,
+					width: rect.width,
+					height: rect.height,
+				},
+			})) as string
+		}
 
 		await page.close()
 
 		await prisma.habiticaUser.update({
 			data: {
-				cachedAvatarBase64: avatarBase64,
+				avatar: {
+					update: {
+						base64Data: avatarBase64,
+						isAnimated: animated,
+					},
+				},
 			},
 			where: {
 				id: habiticaUserId,
 			},
 		})
 
-		return Buffer.from(avatarBase64, 'base64')
+		return {
+			isAnimated: animated,
+			data: Buffer.from(avatarBase64, 'base64'),
+		}
 	} finally {
 		console.info('Finished fetching Habitica avatar.')
 	}
