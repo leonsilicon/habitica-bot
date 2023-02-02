@@ -13,11 +13,13 @@ export async function getHabiticaUserAvatar({
 	habiticaApiToken,
 	animated,
 	force,
+	cacheOnly,
 }: {
 	habiticaUserId: string
 	habiticaApiToken: string
-	animated: boolean
+	animated?: boolean
 	force?: boolean
+	cacheOnly?: boolean
 }): Promise<{ isAnimated: boolean; data: Buffer }> {
 	const prisma = await getPrisma()
 
@@ -36,6 +38,8 @@ export async function getHabiticaUserAvatar({
 				isAnimated: avatar.isAnimated,
 				data: Buffer.from(avatar.base64Data, 'base64'),
 			}
+		} else if (cacheOnly) {
+			return null!
 		}
 	}
 
@@ -83,6 +87,7 @@ export async function getHabiticaUserAvatar({
 
 		let avatarBase64: string
 		if (animated) {
+			console.info('Rendering an animated avatar...')
 			const encoder = new GifEncoder(rect.width, rect.height)
 
 			// 24 frames total, 7200ms length
@@ -117,6 +122,9 @@ export async function getHabiticaUserAvatar({
 
 						const pixels = await new PNG(pngBuffer).decode()
 						frames[frame] = pixels
+
+						console.info(`Finished capturing GIF frame ${frame}!`)
+
 						if (frame === 32) {
 							resolve()
 						}
@@ -139,6 +147,7 @@ export async function getHabiticaUserAvatar({
 					height: rect.height,
 				},
 			})) as string
+			console.info('Screenshotted avator!')
 		}
 
 		await page.close()
@@ -158,7 +167,7 @@ export async function getHabiticaUserAvatar({
 		})
 
 		return {
-			isAnimated: animated,
+			isAnimated: animated ?? false,
 			data: Buffer.from(avatarBase64, 'base64'),
 		}
 	} finally {
