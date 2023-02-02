@@ -66,9 +66,10 @@ export async function updateHabiticaUserAvatar({
 		let avatarBase64: string
 		if (animated) {
 			console.info('Rendering an animated avatar...')
-			const gif = new GifEncoder(rect.width, rect.height)
-			const gifStream = new WritableStream()
-			gif.pipe(gifStream)
+			const gif = new GifEncoder(rect.width, rect.height, {
+				// Buffer size = 256 MB
+				highWaterMark: 256 * 1_048_576,
+			})
 
 			// 24 frames total, 7200ms length
 			// Manually measured to be 300ms per frame
@@ -123,14 +124,19 @@ export async function updateHabiticaUserAvatar({
 				}, 300)
 			})
 
+			const gifBuffers = []
 			for (let i = 0; i < 31; i += 1) {
 				gif.addFrame(frames[i])
-				// We need to flush the internal buffer so we don't run out of memory
-				gif.flushData()
+				// We need to call .read() to flush the internal buffer so we don't run out of memory
+				const bytes = gif.read()
+				if (bytes !== null) {
+					gifBuffers.push(bytes)
+				}
 			}
 
 			gif.finish()
-			avatarBase64 = gifStream.toBuffer().toString('base64')
+
+			avatarBase64 = Buffer.concat(gifBuffers).toString('base64')
 		} else {
 			avatarBase64 = (await page.screenshot({
 				encoding: 'base64',
