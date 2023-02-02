@@ -58,10 +58,12 @@ importers:
       execa: ^6.1.0
       fastify: ^4.11.0
       get-pixels: ^3.3.3
+      get-stream: ^6.0.1
       gif-encoder: ^0.7.2
       got: ^12.5.3
       just-capitalize: ^3.2.0
       lion-utils: ^0.1.11
+      memory-streams: ^0.1.3
       nanoid-nice: ^1.0.6
       node-schedule: ^2.1.1
       onetime: ^6.0.0
@@ -84,10 +86,12 @@ importers:
       dotenv: 16.0.3
       fastify: 4.11.0
       get-pixels: 3.3.3
+      get-stream: 6.0.1
       gif-encoder: 0.7.2
       got: 12.5.3
       just-capitalize: 3.2.0
       lion-utils: 0.1.11
+      memory-streams: 0.1.3
       nanoid-nice: 1.0.6
       node-schedule: 2.1.1
       onetime: 6.0.0
@@ -7682,6 +7686,12 @@ packages:
     resolution: {integrity: sha512-+y4mDxU4rvXXu5UDSGCGNiesFmwCHuefGMoPCO1WYucNYj7DsLqrFaa2fXVI0H+NNiPTwwzKwspn9yTZqUGqng==}
     dev: true
 
+  /memory-streams/0.1.3:
+    resolution: {integrity: sha512-qVQ/CjkMyMInPaaRMrwWNDvf6boRZXaT/DbQeMYcCWuXPEBf1v8qChOc9OlEVQp2uOvRXa1Qu30fLmKhY6NipA==}
+    dependencies:
+      readable-stream: 1.0.34
+    dev: false
+
   /meow/10.1.5:
     resolution: {integrity: sha512-/d+PQ4GKmGvM9Bee/DPa8z3mXs/pkvJE2KEThngVNOqtmljC6K7NMPxtc2JeZYTmpWb9k/TmxjeL18ez3h7vCw==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
@@ -9370,6 +9380,15 @@ packages:
     engines: {node: '>=0.8'}
     dependencies:
       mute-stream: 0.0.8
+    dev: false
+
+  /readable-stream/1.0.34:
+    resolution: {integrity: sha512-ok1qVCJuRkNmvebYikljxJA/UEsKwLl2nI1OmaqAu4/UE+h0wKCHok4XkL/gvi39OacXvw59RJUOFUkDib2rHg==}
+    dependencies:
+      core-util-is: 1.0.3
+      inherits: 2.0.4
+      isarray: 0.0.1
+      string_decoder: 0.10.31
     dev: false
 
   /readable-stream/1.1.14:

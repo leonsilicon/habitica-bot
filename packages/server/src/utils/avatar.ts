@@ -2,8 +2,8 @@ import { Buffer } from 'node:buffer'
 
 import getPixels from 'get-pixels'
 import GifEncoder from 'gif-encoder'
+import { WritableStream } from 'memory-streams'
 import { type NdArray } from 'ndarray'
-import invariant from 'tiny-invariant'
 
 import { getDiscordClient } from '~/utils/discord.js'
 import { getPrisma } from '~/utils/prisma.js'
@@ -121,14 +121,14 @@ export async function updateHabiticaUserAvatar({
 				}, 300)
 			})
 
+			const stream = new WritableStream()
+			encoder.pipe(stream)
 			for (let i = 0; i < 31; i += 1) {
 				encoder.addFrame(frames[i])
 			}
 
 			encoder.finish()
-			const bytes = encoder.read()
-			invariant(bytes !== null)
-			avatarBase64 = bytes.toString('base64')
+			avatarBase64 = stream.toBuffer().toString('base64')
 		} else {
 			avatarBase64 = (await page.screenshot({
 				encoding: 'base64',
