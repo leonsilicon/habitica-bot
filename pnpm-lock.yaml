@@ -44,6 +44,7 @@ importers:
   packages/server:
     specifiers:
       '@prisma/client': ^4.8.1
+      '@types/gif-encoder': ^0.7.1
       '@types/gifencoder': ^2.0.1
       '@types/node-schedule': ^2.1.0
       '@types/pluralize': ^0.0.29
@@ -54,7 +55,7 @@ importers:
       dotenv: ^16.0.3
       execa: ^6.1.0
       fastify: ^4.11.0
-      gifencoder: ^2.0.1
+      gif-encoder: ^0.7.2
       got: ^12.5.3
       just-capitalize: ^3.2.0
       lion-utils: ^0.1.11
@@ -79,7 +80,7 @@ importers:
       discord.js: 14.7.1
       dotenv: 16.0.3
       fastify: 4.11.0
-      gifencoder: 2.0.1
+      gif-encoder: 0.7.2
       got: 12.5.3
       just-capitalize: 3.2.0
       lion-utils: 0.1.11
@@ -98,6 +99,7 @@ importers:
       valtio: 1.9.0
       yn: 5.0.0
     devDependencies:
+      '@types/gif-encoder': 0.7.1
       '@types/gifencoder': 2.0.1
       '@types/node-schedule': 2.1.0
       '@types/pluralize': 0.0.29
@@ -2563,6 +2565,12 @@ packages:
     resolution: {integrity: sha512-WulqXMDUTYAXCjZnk6JtIHPigp55cVtDgDrO2gHRwhyJto21+1zbVCtOYB2L1F9w4qCQ0rOGWBnBe0FNTiEJIQ==}
     dev: true
 
+  /@types/gif-encoder/0.7.1:
+    resolution: {integrity: sha512-Pd49rTcRnv2fci8Z27y9OT/3igO6qzgiAIg3YquQyRJWKSvxxB1np39HFlTAzCpwmLYl2U28S9A40MU/Ijs2WA==}
+    dependencies:
+      '@types/node': 18.11.18
+    dev: true
+
   /@types/gifencoder/2.0.1:
     resolution: {integrity: sha512-Ls78JLiLPHA1ytIXMWv/7/71a2Cz7BBnjgi9R/LFcIS531PEFYxPPGHNmBBnLekQ7/VpO+n1fgaJ6XD3ZkpApg==}
     dependencies:
@@ -3678,19 +3686,6 @@ packages:
       path-temp: 2.0.0
     dev: true
 
-  /canvas/2.11.0:
-    resolution: {integrity: sha512-bdTjFexjKJEwtIo0oRx8eD4G2yWoUOXP9lj279jmQ2zMnTQhT8C3512OKz3s+ZOaQlLbE7TuVvRDYDB3Llyy5g==}
-    engines: {node: '>=6'}
-    requiresBuild: true
-    dependencies:
-      '@mapbox/node-pre-gyp': 1.0.10
-      nan: 2.17.0
-      simple-get: 3.1.1
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-    dev: false
-
   /chai/4.3.7:
     resolution: {integrity: sha512-HLnAzZ2iupm25PlN0xFreAlBA5zaBSv3og0DdeGA4Ar6h6rJ3A0rolRUKJhSF2V10GZKDgWF/VmAEsNWjCRB+A==}
     engines: {node: '>=4'}
@@ -4242,13 +4237,6 @@ packages:
       gunzip-maybe: 1.4.2
       pumpify: 1.5.1
     dev: true
-
-  /decompress-response/4.2.1:
-    resolution: {integrity: sha512-jOSne2qbyE+/r8G1VU+G/82LBs2Fs4LAsTiLSHOCOMZQl2OKZ6i8i4IyHemTe+/yIXOtTcRQMzPcgyhoFlqPkw==}
-    engines: {node: '>=8'}
-    dependencies:
-      mimic-response: 2.1.0
-    dev: false
 
   /decompress-response/5.0.0:
     resolution: {integrity: sha512-TLZWWybuxWgoW7Lykv+gq9xvzOsUjQ9tF09Tj6NSTYGMTCHNXzrPnD6Hi+TgZq19PyTAGH4Ll/NIM/eTGglnMw==}
@@ -5815,13 +5803,11 @@ packages:
       - supports-color
     dev: false
 
-  /gifencoder/2.0.1:
-    resolution: {integrity: sha512-x19DcyWY10SkshBpokqFOo/HBht9GB75evRYvaLMbez9p+yB/o+kt0fK9AwW59nFiAMs2UUQsjv1lX/hvu9Ong==}
+  /gif-encoder/0.7.2:
+    resolution: {integrity: sha512-rEe2DJCb8quqOElV5orqRjyk2KNjz+Hdy+eWYVNWn7s1/33QQ6boIJHkgOto5qU2NrGxI2coPDRqcEaGFZkQ1w==}
+    engines: {node: '>= 6.0.0'}
     dependencies:
-      canvas: 2.11.0
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
+      readable-stream: 1.1.14
     dev: false
 
   /git-node-fs/1.0.0_js-git@0.7.8:
@@ -7613,6 +7599,7 @@ packages:
   /mimic-response/2.1.0:
     resolution: {integrity: sha512-wXqjST+SLt7R009ySCglWBCFpjUygmCIfD790/kVbiGmUgfYGuB14PiTd5DwVxSV4NcYHjzMkoj5LjQZwTQLEA==}
     engines: {node: '>=8'}
+    dev: true
 
   /mimic-response/3.1.0:
     resolution: {integrity: sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ==}
@@ -7742,10 +7729,6 @@ packages:
     resolution: {integrity: sha512-+MrqnJRtxdF+xngFfUUkIMQrUUL0KsxbADUkn23Z/4ibGg192Q+z+CQyiYwvWTsYjJygmMR8+w3ZDa98Zh6ESg==}
     engines: {node: '>=12.0.0'}
     dev: true
-
-  /nan/2.17.0:
-    resolution: {integrity: sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==}
-    dev: false
 
   /nanoid-nice/1.0.6:
     resolution: {integrity: sha512-ch1Q98d45Qs7G10oP7ikviMt6Ib2Ajr3TVp1WTDNCfILuzDIgJD9myG/v0o2E1tKATt96951WQo7LAPayb0O0Q==}
@@ -9652,18 +9635,6 @@ packages:
 
   /signal-exit/3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
-
-  /simple-concat/1.0.1:
-    resolution: {integrity: sha512-cSFtAPtRhljv69IK0hTVZQ+OfE9nePi/rtJmw5UjHeVyVroEqJXP1sFztKUy1qU+xvz3u/sfYJLa947b7nAN2Q==}
-    dev: false
-
-  /simple-get/3.1.1:
-    resolution: {integrity: sha512-CQ5LTKGfCpvE1K0n2us+kuMPbk/q0EKl82s4aheV9oXjFEz6W/Y7oQFVJuU6QG77hRT4Ghb5RURteF5vnWjupA==}
-    dependencies:
-      decompress-response: 4.2.1
-      once: 1.4.0
-      simple-concat: 1.0.1
-    dev: false
 
   /slash/2.0.0:
     resolution: {integrity: sha512-ZYKh3Wh2z1PpEXWr0MpSBZ0V6mZHAQfYevttO11c51CaWjGTaadiKZ+wVt1PbMlDV5qhMFslpZCemhwOK7C89A==}

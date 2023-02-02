@@ -1,8 +1,9 @@
 import { Buffer } from 'node:buffer'
 
-import GifEncoder from 'gifencoder'
+import GifEncoder from 'gif-encoder'
 // @ts-expect-error: no types
 import PNG from 'png-js'
+import invariant from 'tiny-invariant'
 
 import { getDiscordClient } from '~/utils/discord.js'
 import { getPrisma } from '~/utils/prisma.js'
@@ -69,7 +70,7 @@ export async function updateHabiticaUserAvatar({
 
 			// 24 frames total, 7200ms length
 			// Manually measured to be 300ms per frame
-			encoder.start()
+			encoder.writeHeader()
 			encoder.setDelay(300)
 			encoder.setRepeat(0)
 
@@ -112,7 +113,9 @@ export async function updateHabiticaUserAvatar({
 			})
 
 			encoder.finish()
-			avatarBase64 = encoder.out.getData().toString('base64')
+			const bytes = encoder.read()
+			invariant(bytes !== null)
+			avatarBase64 = bytes.toString('base64')
 		} else {
 			avatarBase64 = (await page.screenshot({
 				encoding: 'base64',
@@ -146,6 +149,7 @@ export async function updateHabiticaUserAvatar({
 		return Buffer.from(avatarBase64, 'base64')
 	} catch (error) {
 		console.error('Error fetching avatar:', error)
+		throw error
 	} finally {
 		console.info('Finished fetching Habitica avatar.')
 	}
