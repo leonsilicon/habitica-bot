@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js'
+import invariant from 'tiny-invariant'
 
 import { defineSlashCommand } from '~/utils/command.js'
 import { gotHabitica } from '~/utils/habitica.js'
@@ -28,9 +29,9 @@ export const unlinkCommand = defineSlashCommand({
 		})
 
 		if (user.habiticaUser === null) {
-			await interaction.reply({
-				ephemeral: true,
-				content: 'Successfully unlinked Habitica account.',
+			invariant(interaction.channel !== null)
+			await interaction.channel.send({
+				content: `<@${interaction.user.id}> successfully unlinked their Habitica account.`,
 			})
 			return
 		}
@@ -53,9 +54,9 @@ export const unlinkCommand = defineSlashCommand({
 			})
 		}
 
-		await interaction.reply({
-			ephemeral: true,
-			content: `Successfully unlinked Habitica account ${user.habiticaUser.name} (@${user.habiticaUser.username}).`,
+		invariant(interaction.channel !== null)
+		await interaction.channel.send({
+			content: `<@${interaction.user.id}> successfully unlinked their Habitica account.`,
 		})
 	},
 })

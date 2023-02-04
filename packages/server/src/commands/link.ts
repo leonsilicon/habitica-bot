@@ -83,9 +83,9 @@ export const linkCommand = defineSlashCommand({
 			}
 		}
 
-		await interaction.reply({
-			ephemeral: true,
-			content: `Successfully linked Habitica account ${profile.name} (@${auth.local.username})! (Note: in order for task notifications to appear, you need to run \`/settings public_tasks True)\``,
+		invariant(interaction.channel !== null)
+		await interaction.channel.send({
+			content: `<@${interaction.user.id}> successfully linked their Habitica account ${profile.name} (@${auth.local.username})!\n**Note:** in order for task notifications to appear, you need to run \`/settings public_tasks True\``,
 		})
 	},
 })
