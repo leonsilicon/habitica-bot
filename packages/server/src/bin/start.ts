@@ -235,7 +235,7 @@ app.post('/webhook', async (request, reply) => {
 	}
 
 	const doesTaskNeedProof =
-		/Needs Proof:\s+/.test(task.notes) && data.direction === 'up'
+		/Needs Proof:/.test(task.notes) && data.direction === 'up'
 	const fields: Array<{ name: string; value: string }> = [
 		{
 			name: 'User',
@@ -284,7 +284,7 @@ app.post('/webhook', async (request, reply) => {
 	invariant(notificationsChannel?.type === ChannelType.GuildText)
 
 	if (doesTaskNeedProof) {
-		const proofDescription = /Needs Proof:\s+(.*)/.exec(task.notes)?.[1]
+		const proofDescription = /Needs Proof:\S*(.*)/.exec(task.notes)?.[1]
 		invariant(proofDescription !== undefined, 'missing proof item')
 		const notificationsChannel = await client.channels.fetch(
 			notificationsChannelId
