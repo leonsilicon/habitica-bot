@@ -27,7 +27,11 @@ import { getDiscordClient } from '~/utils/discord.js'
 import { getHabiticaEmbedThumbnail } from '~/utils/embed.js'
 import { getPrisma } from '~/utils/prisma.js'
 import { getPuppeteerBrowser } from '~/utils/puppeteer.js'
-import { createTasksSummaryMessage, isTaskPublic } from '~/utils/tasks.js'
+import {
+	addHabiticaTask,
+	createTasksSummaryMessage,
+	isTaskPublic,
+} from '~/utils/tasks.js'
 
 const slashCommandsMap = Object.fromEntries(
 	Object.values(slashCommandsExports).map((slashCommandExport) => {
@@ -192,6 +196,12 @@ schedule.scheduleJob(rule, async () => {
 	}
 })
 
+app.post('/linear-webhook', async (request) => {
+	console.log('Linear Webhook called with:', request.body)
+	const payload = request.body as any
+	await addHabiticaTask({ text: payload.data.body })
+})
+
 app.post('/webhook', async (request, reply) => {
 	console.log('Webhook called with:', request.body)
 	const data = request.body as HabiticaRequest
@@ -235,7 +245,7 @@ app.post('/webhook', async (request, reply) => {
 	}
 
 	const doesTaskNeedProof =
-		/Needs Proof:/.test(task.notes) && data.direction === 'up'
+		task.notes.includes('Needs Proof:') && data.direction === 'up'
 	const fields: Array<{ name: string; value: string }> = [
 		{
 			name: 'User',
@@ -324,4 +334,3 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (error) => {
 	console.error(error)
 })
-j
