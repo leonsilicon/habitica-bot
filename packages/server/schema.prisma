@@ -17,6 +17,9 @@ model User {
 
   // Whether the user's tasks are public (default false)
   areTasksPublic Boolean @default(false)
+
+  integrations       Integration[]
+  linearIntegrations LinearIntegration[]
 }
 
 model HabiticaUser {
@@ -38,4 +41,20 @@ model HabiticaUserAvatar {
 
   base64Data String
   isAnimated Boolean
+}
+
+model Integration {
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  linearIntegration LinearIntegration?
+}
+
+model LinearIntegration {
+  integration Integration? @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  apiKey String
 }

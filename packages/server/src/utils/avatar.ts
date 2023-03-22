@@ -2,7 +2,6 @@ import { Buffer } from 'node:buffer'
 
 import getPixels from 'get-pixels'
 import GifEncoder from 'gif-encoder'
-import { WritableStream } from 'memory-streams'
 import { type NdArray } from 'ndarray'
 import invariant from 'tiny-invariant'
 

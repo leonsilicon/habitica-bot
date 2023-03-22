@@ -1,10 +1,6 @@
-import { Buffer } from 'node:buffer'
-
 import { AttachmentBuilder } from 'discord.js'
 
 import { getHabiticaUserAvatarWithFallback } from '~/utils/avatar.js'
-import { getDiscordClient } from '~/utils/discord.js'
-import { getPrisma } from '~/utils/prisma.js'
 
 export async function getHabiticaEmbedThumbnail({
 	discordUserId,
