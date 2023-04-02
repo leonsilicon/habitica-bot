@@ -31,10 +31,7 @@ import { getHabiticaEmbedThumbnail } from '~/utils/embed.js'
 import { gotHabitica } from '~/utils/habitica.js'
 import { getPrisma } from '~/utils/prisma.js'
 import { getPuppeteerBrowser } from '~/utils/puppeteer.js'
-import {
-	createTasksSummaryMessage,
-	isTaskPublic,
-} from '~/utils/tasks.js'
+import { createTasksSummaryMessage, isTaskPublic } from '~/utils/tasks.js'
 
 const slashCommandsMap = Object.fromEntries(
 	Object.values(slashCommandsExports).map((slashCommandExport) => {
@@ -208,34 +205,35 @@ schedule.scheduleJob(rule, async () => {
 
 app.post('/linear-webhook', async (request, reply) => {
 	console.log('Linear Webhook called with:', request.body)
-
-	const {
-		data: { userId: linearUserId },
-	} = z.object({ data: z.object({ userId: z.string() }) }).parse(request.body)
+	const { userId } = z.object({ userId: z.string() }).parse(request.query)
 
 	const prisma = await getPrisma()
-	const { webhookSigningSecret, user } =
-		await prisma.linearIntegration.findUniqueOrThrow({
+	const { linearIntegration, habiticaUser } =
+		await prisma.user.findUniqueOrThrow({
 			select: {
-				user: {
+				linearIntegration: {
 					select: {
-						habiticaUser: {
-							select: {
-								apiToken: true,
-								id: true,
-							}
-						}
+						webhookSigningSecret: true,
 					},
 				},
-				webhookSigningSecret: true,
+				habiticaUser: {
+					select: {
+						apiToken: true,
+						id: true,
+					},
+				},
 			},
 			where: {
-				linearUserId,
+				id: userId,
 			},
 		})
 
+	if (linearIntegration === null) {
+		return reply.status(400).send('User does not have a Linear integration')
+	}
+
 	const signature = crypto
-		.createHmac('sha256', webhookSigningSecret)
+		.createHmac('sha256', linearIntegration.webhookSigningSecret)
 		.update(request.rawBody!)
 		.digest('hex')
 
@@ -244,7 +242,9 @@ app.post('/linear-webhook', async (request, reply) => {
 		return
 	}
 
-	invariant(user.habiticaUser !== null, 'user must have a habitica account')
+	if (habiticaUser === null) {
+		return reply.status(400).send('User must have a habitica account.')
+	}
 
 	const { type, data } = z
 		.object({
@@ -260,8 +260,8 @@ app.post('/linear-webhook', async (request, reply) => {
 				type: 'todo',
 				notes: data.description,
 			},
-			userId: user.habiticaUser.id,
-			apiToken: user.habiticaUser.apiToken,
+			userId: habiticaUser.id,
+			apiToken: habiticaUser.apiToken,
 		})
 	}
 })
