@@ -136,14 +136,12 @@ export const linearIntegrationCommand = defineSlashCommand({
 					apiKey: linearIntegration.apiKey,
 				})
 
-				invariant(
-					habiticaUser !== null,
-					'user must have a habitica user account'
-				)
-
 				const habiticaTasks = await gotHabitica('GET /api/v3/tasks/user', {
 					apiToken: habiticaUser.apiToken,
 					userId: habiticaUser.userId,
+					searchParams: {
+						type: 'todos',
+					},
 				})
 
 				// Retrieve all the linear tasks that haven't been added to Habitica yet

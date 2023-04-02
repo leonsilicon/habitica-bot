@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-types */
+
 import { type Method, got } from 'got'
 import invariant from 'tiny-invariant'
-import { type EmptyObject, type PartialOnUndefinedDeep } from 'type-fest'
+import { type PartialOnUndefinedDeep } from 'type-fest'
 
 import {
 	type HabiticaTasksResponse,
@@ -15,7 +17,8 @@ function defineRequestMap<
 		{
 			response?: any
 			body?: Record<string, unknown>
-			params?: Record<string, true>
+			pathParams?: Record<string, true>
+			searchParams?: Record<string, unknown>
 		}
 	>
 >(requestMap: R): R {
@@ -27,6 +30,9 @@ const requestMap = defineRequestMap({
 		response: {} as HabiticaUserResponse,
 	},
 	'GET /api/v3/tasks/user': {
+		searchParams: {
+			type: {} as 'habits' | 'dailys' | 'todos' | 'rewards' | 'completedTodos',
+		},
 		response: {} as HabiticaTasksResponse,
 	},
 	'POST /api/v3/tasks/user': {
@@ -53,7 +59,7 @@ const requestMap = defineRequestMap({
 		},
 	},
 	'DELETE /api/v3/user/webhook/:id': {
-		params: {
+		pathParams: {
 			id: true,
 		},
 	},
@@ -66,12 +72,19 @@ export async function gotHabitica<Request extends keyof RequestMap>(
 	options: {
 		userId: string
 		apiToken: string
-	} & (RequestMap[Request] extends { params: any }
-		? { params: Record<keyof RequestMap[Request]['params'], string> }
-		: EmptyObject) &
+	} & (RequestMap[Request] extends { pathParams: any }
+		? { pathParams: Record<keyof RequestMap[Request]['pathParams'], string> }
+		: {}) &
+		(RequestMap[Request] extends { searchParams: any }
+			? {
+					searchParams: PartialOnUndefinedDeep<
+						RequestMap[Request]['searchParams']
+					>
+			  }
+			: {}) &
 		(RequestMap[Request] extends { body: any }
 			? { body: PartialOnUndefinedDeep<RequestMap[Request]['body']> }
-			: EmptyObject)
+			: {})
 ): Promise<
 	RequestMap[Request] extends { response: any }
 		? RequestMap[Request]['response']
@@ -81,15 +94,14 @@ export async function gotHabitica<Request extends keyof RequestMap>(
 	invariant(method !== undefined)
 	invariant(url !== undefined)
 
-	if ('params' in options) {
-		for (const [key, value] of Object.entries(
-			options.params as Record<string, string>
-		)) {
+	if ('pathParams' in options) {
+		for (const [key, value] of Object.entries(options.pathParams)) {
 			url = url.replace(`:${key}`, value)
 		}
 	}
 
 	const response = await got(`https://habitica.com${url}`, {
+		searchParams: 'searchParams' in options ? options.searchParams : undefined,
 		method: method as Method,
 		body: 'body' in options ? JSON.stringify(options.body) : undefined,
 		headers: {
