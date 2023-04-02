@@ -100,7 +100,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 							habiticaUser: {
 								select: {
 									apiToken: true,
-									userId: true,
+									id: true,
 								},
 							},
 							linearIntegration: {
@@ -136,9 +136,13 @@ export const linearIntegrationCommand = defineSlashCommand({
 					apiKey: linearIntegration.apiKey,
 				})
 
+				await interaction.deferReply({
+					ephemeral: true,
+				})
+
 				const habiticaTasks = await gotHabitica('GET /api/v3/tasks/user', {
 					apiToken: habiticaUser.apiToken,
-					userId: habiticaUser.userId,
+					userId: habiticaUser.id,
 					searchParams: {
 						type: 'todos',
 					},
@@ -158,7 +162,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 						newLinearTasks.map(async (linearTask) =>
 							gotHabitica('POST /api/v3/tasks/user', {
 								apiToken: habiticaUser.apiToken,
-								userId: habiticaUser.userId,
+								userId: habiticaUser.id,
 								body: {
 									text: linearTask.title,
 									type: 'todo',
@@ -168,13 +172,11 @@ export const linearIntegrationCommand = defineSlashCommand({
 						)
 					)
 
-					await interaction.reply({
-						ephemeral: true,
+					await interaction.editReply({
 						content: 'Linear tasks successfully synced with Habitica!',
 					})
 				} else {
-					await interaction.reply({
-						ephemeral: true,
+					await interaction.editReply({
 						content: 'Linear tasks are already synced with Habitica.',
 					})
 				}
