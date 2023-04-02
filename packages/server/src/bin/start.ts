@@ -32,7 +32,6 @@ import { gotHabitica } from '~/utils/habitica.js'
 import { getPrisma } from '~/utils/prisma.js'
 import { getPuppeteerBrowser } from '~/utils/puppeteer.js'
 import {
-	addHabiticaTask,
 	createTasksSummaryMessage,
 	isTaskPublic,
 } from '~/utils/tasks.js'
@@ -220,7 +219,12 @@ app.post('/linear-webhook', async (request, reply) => {
 			select: {
 				user: {
 					select: {
-						habiticaUserId: true,
+						habiticaUser: {
+							select: {
+								apiToken: true,
+								id: true,
+							}
+						}
 					},
 				},
 				webhookSigningSecret: true,
