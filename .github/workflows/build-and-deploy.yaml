@@ -44,7 +44,7 @@ jobs:
           switches: -vhra --delete --include='**.gitignore' --include='**/dist' --exclude='/.git' --filter=':- .gitignore' --delete-after
           path: /
           remote_path: /home/ubuntu/projects/habitica-bot
-          remote_host: '44.204.114.214'
+          remote_host: '44.203.214.26'
           remote_user: ubuntu
           remote_key: ${{ secrets.EC2_SSH_KEY }}
 
