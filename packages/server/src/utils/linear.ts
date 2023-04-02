@@ -1,6 +1,8 @@
 import { LinearClient } from '@linear/sdk'
 import onetime from 'onetime'
 
+import { linearWebhookUrl } from '~/utils/webhook.js'
+
 // Api key authentication
 const getLinear = onetime(
 	() =>
@@ -19,7 +21,8 @@ export async function getLinearTasks() {
 
 export async function setLinearWebhook() {
 	const linear = getLinear()
-	linear.createWebhook({
-
+	await linear.createWebhook({
+		url: linearWebhookUrl,
+		resourceTypes: ['ISSUE'],
 	})
 }
