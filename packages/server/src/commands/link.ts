@@ -1,12 +1,12 @@
 import { SlashCommandBuilder } from 'discord.js'
 import { nanoid } from 'nanoid-nice'
+import { outdent } from 'outdent'
 import invariant from 'tiny-invariant'
 
 import { defineSlashCommand } from '~/utils/command.js'
 import { gotHabitica } from '~/utils/habitica.js'
 import { getPrisma } from '~/utils/prisma.js'
 import { habiticaBotWebhookUrl } from '~/utils/webhook.js'
-import { outdent } from 'outdent'
 
 export const linkCommand = defineSlashCommand({
 	data: new SlashCommandBuilder()
@@ -85,12 +85,9 @@ export const linkCommand = defineSlashCommand({
 		}
 
 		invariant(interaction.channel !== null)
-		await interaction.channel.send({
-			content: `<@${interaction.user.id}> successfully linked their Habitica account ${profile.name} (@${auth.local.username})!`,
-		})
 		await interaction.reply({
 			content: outdent`
-				You have successfully linked your Habitica account.
+				Successfully linked your Habitica account ${profile.name} (@${auth.local.username})!
 
 				**Note:** in order for task notifications to appear, you need to run \`/settings public_tasks True\`
 			`,
