@@ -52,7 +52,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           command_timeout: 30m
-          host: '44.204.114.214'
+          host: '44.203.214.26'
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
