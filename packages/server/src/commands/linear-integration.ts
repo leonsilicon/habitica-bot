@@ -8,7 +8,6 @@ import {
 	createLinearWebhook,
 	getLinear,
 	getLinearTasks,
-	setLinearWebhook,
 } from '~/utils/linear.js'
 import { getPrisma } from '~/utils/prisma.js'
 
@@ -39,6 +38,24 @@ export const linearIntegrationCommand = defineSlashCommand({
 		),
 	async execute(interaction) {
 		const subcommand = interaction.options.getSubcommand()
+
+		const prisma = await getPrisma()
+		const appUser = await prisma.appUser.findUnique({
+			select: {
+				id: true,
+			},
+			where: {
+				discordUserId: interaction.user.id,
+			},
+		})
+
+		if (appUser === null) {
+			await interaction.reply({
+				content: 'You do not have a linked Habitica account.',
+			})
+			return
+		}
+
 		switch (subcommand) {
 			case 'create': {
 				const linearApiKey = interaction.options.getString('linear_api_key')
@@ -47,6 +64,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 
 				try {
 					const webhook = await createLinearWebhook({
+						appUserId: appUser.id,
 						apiKey: linearApiKey,
 					})
 					if (webhook?.secret === undefined) {
@@ -58,7 +76,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 
 					await prisma.integration.create({
 						data: {
-							user: {
+							appUser: {
 								connect: {
 									discordUserId: interaction.user.id,
 								},
@@ -66,7 +84,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 							linearIntegration: {
 								create: {
 									apiKey: linearApiKey,
-									signingSecret: webhook.secret,
+									webhookSigningSecret: webhook.secret,
 									linearUserId: linearUser.id,
 								},
 							},
@@ -98,7 +116,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 				const prisma = await getPrisma()
 				await prisma.linearIntegration.delete({
 					where: {
-						userId: interaction.user.id,
+						appUserId: appUser.id,
 					},
 				})
 
@@ -159,8 +177,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 				})
 
 				const habiticaTasks = await gotHabitica('GET /api/v3/tasks/user', {
-					apiToken: habiticaUser.apiToken,
-					userId: habiticaUser.id,
+					habiticaUser,
 					searchParams: {
 						type: 'todos',
 					},
@@ -179,8 +196,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 					await Promise.all(
 						newLinearTasks.map(async (linearTask) =>
 							gotHabitica('POST /api/v3/tasks/user', {
-								apiToken: habiticaUser.apiToken,
-								userId: habiticaUser.id,
+								habiticaUser,
 								body: {
 									text: linearTask.title,
 									type: 'todo',

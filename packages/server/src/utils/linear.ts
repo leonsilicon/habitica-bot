@@ -22,15 +22,15 @@ export async function getLinearTasks({ apiKey }: { apiKey: string }) {
 
 export async function createLinearWebhook({
 	apiKey,
-	userId,
+	appUserId,
 }: {
 	apiKey: string
-	userId: string
+	appUserId: string
 }) {
 	const linear = getLinear({ apiKey })
 	const { webhook } = await linear.createWebhook({
 		id: 'habitica-linear',
-		url: getLinearWebhookUrl({ userId }),
+		url: getLinearWebhookUrl({ appUserId }),
 		resourceTypes: ['ISSUE'],
 	})
 

@@ -34,9 +34,13 @@ export const linkCommand = defineSlashCommand({
 		const habiticaApiToken = interaction.options.getString('api_token')
 		invariant(habiticaApiToken !== null)
 
-		const { auth, profile } = await gotHabitica('GET /api/v3/user', {
+		const habiticaUser = {
+			id: habiticaApiToken,
 			apiToken: habiticaApiToken,
-			userId: habiticaUserId,
+		}
+
+		const { auth, profile } = await gotHabitica('GET /api/v3/user', {
+			habiticaUser,
 		})
 		const prisma = await getPrisma()
 		await prisma.appUser.create({
@@ -57,8 +61,7 @@ export const linkCommand = defineSlashCommand({
 		})
 
 		const webhooks = await gotHabitica('GET /api/v3/user/webhook', {
-			apiToken: habiticaApiToken,
-			userId: habiticaUserId,
+			habiticaUser,
 		})
 
 		const habiticaBotWebhook = webhooks.find(
@@ -66,8 +69,7 @@ export const linkCommand = defineSlashCommand({
 		)
 		if (habiticaBotWebhook === undefined) {
 			await gotHabitica('POST /api/v3/user/webhook', {
-				apiToken: habiticaApiToken,
-				userId: habiticaUserId,
+				habiticaUser,
 				body: {
 					url: habiticaBotWebhookUrl,
 				},
@@ -75,8 +77,7 @@ export const linkCommand = defineSlashCommand({
 		} else {
 			if (!habiticaBotWebhook.enabled) {
 				await gotHabitica('PUT /api/v3/user/webhook/:id', {
-					apiToken: habiticaApiToken,
-					userId: habiticaUserId,
+					habiticaUser,
 					body: {
 						enabled: true,
 					},
