@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 import { LinearClient } from '@linear/sdk'
 import hashObject from 'hash-obj'
 import mem from 'mem'
@@ -29,7 +31,7 @@ export async function createLinearWebhook({
 }) {
 	const linear = getLinear({ apiKey })
 	const { webhook } = await linear.createWebhook({
-		id: 'habitica-linear',
+		id: randomUUID(),
 		url: getLinearWebhookUrl({ appUserId }),
 		resourceTypes: ['ISSUE'],
 	})

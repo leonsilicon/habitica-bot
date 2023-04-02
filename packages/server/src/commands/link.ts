@@ -1,5 +1,5 @@
+import { createId } from '@paralleldrive/cuid2'
 import { SlashCommandBuilder } from 'discord.js'
-import { nanoid } from 'nanoid-nice'
 import { outdent } from 'outdent'
 import invariant from 'tiny-invariant'
 
@@ -35,7 +35,7 @@ export const linkCommand = defineSlashCommand({
 		invariant(habiticaApiToken !== null)
 
 		const habiticaUser = {
-			id: habiticaApiToken,
+			id: habiticaUserId,
 			apiToken: habiticaApiToken,
 		}
 
@@ -45,7 +45,7 @@ export const linkCommand = defineSlashCommand({
 		const prisma = await getPrisma()
 		await prisma.appUser.create({
 			data: {
-				id: nanoid(),
+				id: createId(),
 				habiticaUser: {
 					create: {
 						id: habiticaUserId,
