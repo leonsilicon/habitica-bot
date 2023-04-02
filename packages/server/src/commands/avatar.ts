@@ -35,7 +35,7 @@ export const avatarCommand = defineSlashCommand({
 		switch (subcommand) {
 			case 'delete': {
 				const prisma = await getPrisma()
-				await prisma.user.update({
+				await prisma.appUser.update({
 					data: {
 						habiticaUser: {
 							update: {
@@ -60,7 +60,7 @@ export const avatarCommand = defineSlashCommand({
 			case 'update': {
 				const animated = interaction.options.getBoolean('animated') ?? false
 				const prisma = await getPrisma()
-				const { habiticaUser } = await prisma.user.findFirstOrThrow({
+				const { habiticaUser } = await prisma.appUser.findFirstOrThrow({
 					select: {
 						habiticaUser: {
 							select: {
@@ -101,7 +101,7 @@ export const avatarCommand = defineSlashCommand({
 
 			case 'view': {
 				const prisma = await getPrisma()
-				const { habiticaUser } = await prisma.user.findFirstOrThrow({
+				const { habiticaUser } = await prisma.appUser.findFirstOrThrow({
 					select: {
 						habiticaUser: {
 							select: {

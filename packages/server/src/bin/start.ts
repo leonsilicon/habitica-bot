@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import path from 'node:path'
 
 import dayjs from 'dayjs'
@@ -15,23 +16,22 @@ import {
 } from 'discord.js'
 import dotenv from 'dotenv'
 import { fastify } from 'fastify'
+import fastifyRawBody from 'fastify-raw-body'
 import capitalize from 'just-capitalize'
 import { getProjectDir } from 'lion-utils'
 import schedule from 'node-schedule'
 import invariant from 'tiny-invariant'
+import { z } from 'zod'
 
-import * as slashCommandsExports from '~/commands/index.js'
+import * as slashCommandsExports from '~/commands/_commands.js'
 import { type SlashCommand } from '~/types/command.js'
 import { type HabiticaRequest } from '~/types/habitica.js'
 import { getDiscordClient } from '~/utils/discord.js'
 import { getHabiticaEmbedThumbnail } from '~/utils/embed.js'
+import { gotHabitica } from '~/utils/habitica.js'
 import { getPrisma } from '~/utils/prisma.js'
 import { getPuppeteerBrowser } from '~/utils/puppeteer.js'
-import {
-	addHabiticaTask,
-	createTasksSummaryMessage,
-	isTaskPublic,
-} from '~/utils/tasks.js'
+import { createTasksSummaryMessage, isTaskPublic } from '~/utils/tasks.js'
 
 const slashCommandsMap = Object.fromEntries(
 	Object.values(slashCommandsExports).map((slashCommandExport) => {
@@ -158,6 +158,12 @@ const app = fastify({
 	},
 })
 
+await app.register(fastifyRawBody, {
+	field: 'rawBody',
+	global: false,
+	encoding: false,
+})
+
 const notificationsChannelId = '1061299980792496202'
 
 const rule = new schedule.RecurrenceRule()
@@ -174,7 +180,7 @@ schedule.scheduleJob(rule, async () => {
 		// Get all users who have public tasks set to true
 
 		const prisma = await getPrisma()
-		const users = await prisma.user.findMany({
+		const appUsers = await prisma.appUser.findMany({
 			select: {
 				id: true,
 			},
@@ -184,10 +190,10 @@ schedule.scheduleJob(rule, async () => {
 		})
 
 		await Promise.all(
-			users.map(async (user) => {
+			appUsers.map(async (appUser) => {
 				await channel.send(
 					await createTasksSummaryMessage({
-						userId: user.id,
+						appUserId: appUser.id,
 						taskType: 'daily',
 					})
 				)
@@ -196,14 +202,71 @@ schedule.scheduleJob(rule, async () => {
 	}
 })
 
-app.post('/linear-webhook', async (request) => {
-	console.log('Linear Webhook called with:', request.body)
-	const payload = request.body as any
-	await addHabiticaTask({ text: payload.data.body })
+app.post('/linear-webhook', {
+	config: { rawBody: true },
+	async handler(request, reply) {
+		const { userId } = z.object({ userId: z.string() }).parse(request.query)
+
+		const prisma = await getPrisma()
+		const { linearIntegration, habiticaUser } =
+			await prisma.appUser.findUniqueOrThrow({
+				select: {
+					linearIntegration: {
+						select: {
+							webhookSigningSecret: true,
+						},
+					},
+					habiticaUser: {
+						select: {
+							apiToken: true,
+							id: true,
+						},
+					},
+				},
+				where: {
+					id: userId,
+				},
+			})
+
+		if (linearIntegration === null) {
+			return reply.status(400).send('User does not have a Linear integration')
+		}
+
+		const signature = crypto
+			.createHmac('sha256', linearIntegration.webhookSigningSecret)
+			.update(request.rawBody!)
+			.digest('hex')
+
+		if (signature !== request.headers['linear-signature']) {
+			void reply.status(400)
+			return
+		}
+
+		if (habiticaUser === null) {
+			return reply.status(400).send('User must have a habitica account.')
+		}
+
+		const { type, data } = z
+			.object({
+				type: z.string(),
+				data: z.object({ title: z.string(), description: z.string() }),
+			})
+			.parse(request.body)
+
+		if (type === 'IssueCreated') {
+			await gotHabitica('POST /api/v3/tasks/user', {
+				body: {
+					text: data.title,
+					type: 'todo',
+					notes: data.description,
+				},
+				habiticaUser,
+			})
+		}
+	},
 })
 
-app.post('/webhook', async (request, reply) => {
-	console.log('Webhook called with:', request.body)
+app.post('/habitica-webhook', async (request, reply) => {
 	const data = request.body as HabiticaRequest
 	const { task } = data
 
@@ -212,7 +275,7 @@ app.post('/webhook', async (request, reply) => {
 	}
 
 	const prisma = await getPrisma()
-	const user = await prisma.user.findUniqueOrThrow({
+	const appUser = await prisma.appUser.findUniqueOrThrow({
 		select: {
 			id: true,
 			discordUserId: true,
@@ -228,9 +291,8 @@ app.post('/webhook', async (request, reply) => {
 			habiticaUserId: data.user._id,
 		},
 	})
-	console.info(`User ID: ${user.id}`)
 
-	if (user.habiticaUser === null) {
+	if (appUser.habiticaUser === null) {
 		return
 	}
 
@@ -249,7 +311,7 @@ app.post('/webhook', async (request, reply) => {
 	const fields: Array<{ name: string; value: string }> = [
 		{
 			name: 'User',
-			value: user.habiticaUser.name,
+			value: appUser.habiticaUser.name,
 		},
 		{
 			name: 'Task Name',
@@ -277,7 +339,7 @@ app.post('/webhook', async (request, reply) => {
 	}
 
 	const { files, thumbnail } = await getHabiticaEmbedThumbnail({
-		discordUserId: user.discordUserId,
+		discordUserId: appUser.discordUserId,
 	})
 
 	const embed = new EmbedBuilder()
@@ -302,7 +364,7 @@ app.post('/webhook', async (request, reply) => {
 		console.info('Sending proof message...')
 		await notificationsChannel.send({
 			embeds: [embed],
-			content: `<@${user.discordUserId}>, please send proof of completion for your task _${task.text}_ (${proofDescription})`,
+			content: `<@${appUser.discordUserId}>, please send proof of completion for your task _${task.text}_ (${proofDescription})`,
 		})
 	} else {
 		console.info('Sending embed...')

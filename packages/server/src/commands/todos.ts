@@ -22,7 +22,7 @@ export const todosCommand = defineSlashCommand({
 		invariant(discordUser !== null)
 
 		const prisma = await getPrisma()
-		const user = await prisma.user.findFirstOrThrow({
+		const appUser = await prisma.appUser.findFirstOrThrow({
 			select: {
 				areTasksPublic: true,
 				id: true,
@@ -32,13 +32,13 @@ export const todosCommand = defineSlashCommand({
 			},
 		})
 
-		if (!user.areTasksPublic) {
+		if (!appUser.areTasksPublic) {
 			throw new Error('User has set their tasks to private.')
 		}
 
 		await interaction.reply(
 			await createTasksSummaryMessage({
-				userId: user.id,
+				appUserId: appUser.id,
 				taskType: 'todo',
 			})
 		)

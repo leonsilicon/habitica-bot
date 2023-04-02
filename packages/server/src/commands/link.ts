@@ -1,5 +1,6 @@
+import { createId } from '@paralleldrive/cuid2'
 import { SlashCommandBuilder } from 'discord.js'
-import { nanoid } from 'nanoid-nice'
+import { outdent } from 'outdent'
 import invariant from 'tiny-invariant'
 
 import { defineSlashCommand } from '~/utils/command.js'
@@ -33,14 +34,18 @@ export const linkCommand = defineSlashCommand({
 		const habiticaApiToken = interaction.options.getString('api_token')
 		invariant(habiticaApiToken !== null)
 
-		const { auth, profile } = await gotHabitica('GET /api/v3/user', {
+		const habiticaUser = {
+			id: habiticaUserId,
 			apiToken: habiticaApiToken,
-			userId: habiticaUserId,
+		}
+
+		const { auth, profile } = await gotHabitica('GET /api/v3/user', {
+			habiticaUser,
 		})
 		const prisma = await getPrisma()
-		await prisma.user.create({
+		await prisma.appUser.create({
 			data: {
-				id: nanoid(),
+				id: createId(),
 				habiticaUser: {
 					create: {
 						id: habiticaUserId,
@@ -56,8 +61,7 @@ export const linkCommand = defineSlashCommand({
 		})
 
 		const webhooks = await gotHabitica('GET /api/v3/user/webhook', {
-			apiToken: habiticaApiToken,
-			userId: habiticaUserId,
+			habiticaUser,
 		})
 
 		const habiticaBotWebhook = webhooks.find(
@@ -65,8 +69,7 @@ export const linkCommand = defineSlashCommand({
 		)
 		if (habiticaBotWebhook === undefined) {
 			await gotHabitica('POST /api/v3/user/webhook', {
-				apiToken: habiticaApiToken,
-				userId: habiticaUserId,
+				habiticaUser,
 				body: {
 					url: habiticaBotWebhookUrl,
 				},
@@ -74,8 +77,7 @@ export const linkCommand = defineSlashCommand({
 		} else {
 			if (!habiticaBotWebhook.enabled) {
 				await gotHabitica('PUT /api/v3/user/webhook/:id', {
-					apiToken: habiticaApiToken,
-					userId: habiticaUserId,
+					habiticaUser,
 					body: {
 						enabled: true,
 					},
@@ -84,8 +86,12 @@ export const linkCommand = defineSlashCommand({
 		}
 
 		invariant(interaction.channel !== null)
-		await interaction.channel.send({
-			content: `<@${interaction.user.id}> successfully linked their Habitica account ${profile.name} (@${auth.local.username})!\n**Note:** in order for task notifications to appear, you need to run \`/settings public_tasks True\``,
+		await interaction.reply({
+			content: outdent`
+				Successfully linked your Habitica account ${profile.name} (@${auth.local.username})!
+
+				**Note:** in order for task notifications to appear, you need to run \`/settings public_tasks True\`
+			`,
 		})
 	},
 })

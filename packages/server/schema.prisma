@@ -7,7 +7,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
+model AppUser {
   id String @id
 
   discordUserId String @unique
@@ -17,13 +17,16 @@ model User {
 
   // Whether the user's tasks are public (default false)
   areTasksPublic Boolean @default(false)
+
+  integrations      Integration[]
+  linearIntegration LinearIntegration?
 }
 
 model HabiticaUser {
   id String @unique
 
-  user   User   @relation(name: "habiticaUser", fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique
+  appUser   AppUser @relation(name: "habiticaUser", fields: [appUserId], references: [id], onDelete: Cascade)
+  appUserId String  @unique
 
   apiToken String
   name     String
@@ -33,9 +36,27 @@ model HabiticaUser {
 }
 
 model HabiticaUserAvatar {
-  user   HabiticaUser @relation(name: "habiticaUserAvatar", fields: [userId], references: [id], onDelete: Cascade)
-  userId String       @unique
+  habiticaUser   HabiticaUser @relation(name: "habiticaUserAvatar", fields: [habiticaUserId], references: [id], onDelete: Cascade)
+  habiticaUserId String       @unique
 
   base64Data String
   isAnimated Boolean
+}
+
+model Integration {
+  appUser   AppUser @relation(fields: [appUserId], references: [id], onDelete: Cascade)
+  appUserId String  @unique
+
+  linearIntegration LinearIntegration?
+}
+
+model LinearIntegration {
+  integration Integration? @relation(fields: [appUserId], references: [appUserId], onDelete: Cascade)
+
+  appUser   AppUser @relation(fields: [appUserId], references: [id], onDelete: Cascade)
+  appUserId String  @unique
+
+  apiKey               String
+  webhookSigningSecret String
+  linearUserId         String @unique
 }

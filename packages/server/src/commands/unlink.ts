@@ -12,7 +12,7 @@ export const unlinkCommand = defineSlashCommand({
 		.setDescription('Unlink your Habitica account'),
 	async execute(interaction) {
 		const prisma = await getPrisma()
-		const user = await prisma.user.delete({
+		const appUser = await prisma.appUser.delete({
 			select: {
 				habiticaUser: {
 					select: {
@@ -28,17 +28,16 @@ export const unlinkCommand = defineSlashCommand({
 			},
 		})
 
-		if (user.habiticaUser === null) {
+		if (appUser.habiticaUser === null) {
 			invariant(interaction.channel !== null)
-			await interaction.channel.send({
-				content: `<@${interaction.user.id}> successfully unlinked their Habitica account.`,
+			await interaction.reply({
+				content: `Successfully unlinked Habitica account!`,
 			})
 			return
 		}
 
 		const webhooks = await gotHabitica('GET /api/v3/user/webhook', {
-			apiToken: user.habiticaUser.apiToken,
-			userId: user.habiticaUser.id,
+			habiticaUser: appUser.habiticaUser,
 		})
 		const habiticaBotWebhookId = webhooks.find(
 			(webhook) => webhook.url === habiticaBotWebhookUrl
@@ -46,16 +45,15 @@ export const unlinkCommand = defineSlashCommand({
 
 		if (habiticaBotWebhookId !== undefined) {
 			await gotHabitica('DELETE /api/v3/user/webhook/:id', {
-				apiToken: user.habiticaUser.apiToken,
-				userId: user.habiticaUser.id,
-				params: {
+				habiticaUser: appUser.habiticaUser,
+				pathParams: {
 					id: habiticaBotWebhookId,
 				},
 			})
 		}
 
 		invariant(interaction.channel !== null)
-		await interaction.channel.send({
+		await interaction.reply({
 			content: `<@${interaction.user.id}> successfully unlinked their Habitica account.`,
 		})
 	},

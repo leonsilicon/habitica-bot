@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-types */
+
 import { type Method, got } from 'got'
 import invariant from 'tiny-invariant'
-import { type EmptyObject, type PartialOnUndefinedDeep } from 'type-fest'
+import { type PartialOnUndefinedDeep } from 'type-fest'
 
 import {
 	type HabiticaTasksResponse,
@@ -15,20 +17,37 @@ function defineRequestMap<
 		{
 			response?: any
 			body?: Record<string, unknown>
-			params?: Record<string, true>
+			pathParams?: Record<string, true>
+			searchParams?: Record<string, unknown>
 		}
 	>
 >(requestMap: R): R {
 	return requestMap as any
 }
 
-const t = <T>() => null as T
-
 const requestMap = defineRequestMap({
 	'GET /api/v3/user': {
 		response: {} as HabiticaUserResponse,
 	},
 	'GET /api/v3/tasks/user': {
+		searchParams: {
+			type: {} as
+				| 'habits'
+				| 'dailys'
+				| 'todos'
+				| 'rewards'
+				| 'completedTodos'
+				| undefined,
+		},
+		response: {} as HabiticaTasksResponse,
+	},
+	'POST /api/v3/tasks/user': {
+		body: {
+			text: {} as string,
+			type: {} as 'todo' | 'habit' | 'daily' | 'reward',
+			notes: {} as string | undefined,
+			priority: {} as '0.1' | '1' | '1.5' | '2' | undefined,
+		},
 		response: {} as HabiticaTasksResponse,
 	},
 	'GET /api/v3/user/webhook': {
@@ -36,17 +55,17 @@ const requestMap = defineRequestMap({
 	},
 	'POST /api/v3/user/webhook': {
 		body: {
-			id: t<string | undefined>(),
-			url: t<string>(),
+			id: {} as string | undefined,
+			url: {} as string,
 		},
 	},
 	'PUT /api/v3/user/webhook/:id': {
 		body: {
-			enabled: t<boolean>(),
+			enabled: {} as boolean,
 		},
 	},
 	'DELETE /api/v3/user/webhook/:id': {
-		params: {
+		pathParams: {
 			id: true,
 		},
 	},
@@ -57,14 +76,23 @@ type RequestMap = typeof requestMap
 export async function gotHabitica<Request extends keyof RequestMap>(
 	request: Request,
 	options: {
-		userId: string
-		apiToken: string
-	} & (RequestMap[Request] extends { params: any }
-		? { params: Record<keyof RequestMap[Request]['params'], string> }
-		: EmptyObject) &
+		habiticaUser: {
+			id: string
+			apiToken: string
+		}
+	} & (RequestMap[Request] extends { pathParams: any }
+		? { pathParams: Record<keyof RequestMap[Request]['pathParams'], string> }
+		: {}) &
+		(RequestMap[Request] extends { searchParams: any }
+			? {
+					searchParams: PartialOnUndefinedDeep<
+						RequestMap[Request]['searchParams']
+					>
+			  }
+			: {}) &
 		(RequestMap[Request] extends { body: any }
 			? { body: PartialOnUndefinedDeep<RequestMap[Request]['body']> }
-			: EmptyObject)
+			: {})
 ): Promise<
 	RequestMap[Request] extends { response: any }
 		? RequestMap[Request]['response']
@@ -74,21 +102,20 @@ export async function gotHabitica<Request extends keyof RequestMap>(
 	invariant(method !== undefined)
 	invariant(url !== undefined)
 
-	if ('params' in options) {
-		for (const [key, value] of Object.entries(
-			options.params as Record<string, string>
-		)) {
+	if ('pathParams' in options) {
+		for (const [key, value] of Object.entries(options.pathParams)) {
 			url = url.replace(`:${key}`, value)
 		}
 	}
 
 	const response = await got(`https://habitica.com${url}`, {
+		searchParams: 'searchParams' in options ? options.searchParams : undefined,
 		method: method as Method,
 		body: 'body' in options ? JSON.stringify(options.body) : undefined,
 		headers: {
 			'Content-Type': 'application/json',
-			'x-api-user': options.userId,
-			'x-api-key': options.apiToken,
+			'x-api-user': options.habiticaUser.id,
+			'x-api-key': options.habiticaUser.apiToken,
 			'x-client': `${env('HABITICA_USER_ID')}-HabiticaBot`,
 		},
 	})
