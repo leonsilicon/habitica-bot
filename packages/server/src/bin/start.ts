@@ -20,7 +20,7 @@ import { getProjectDir } from 'lion-utils'
 import schedule from 'node-schedule'
 import invariant from 'tiny-invariant'
 
-import * as slashCommandsExports from '~/commands/index.js'
+import * as slashCommandsExports from '~/commands/_commands.js'
 import { type SlashCommand } from '~/types/command.js'
 import { type HabiticaRequest } from '~/types/habitica.js'
 import { getDiscordClient } from '~/utils/discord.js'

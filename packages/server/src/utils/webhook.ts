@@ -2,4 +2,4 @@ export const habiticaBotWebhookUrl =
 	'https://habitica-bot.leondreamed.com/webhook'
 
 export const linearWebhookUrl =
-	'https://habitica-bot.leondreamed.com/linear-webhook'
+	'https://90ab-73-134-223-167.ngrok.io/linear-webhook'

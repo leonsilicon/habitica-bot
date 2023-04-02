@@ -22,8 +22,6 @@ function defineRequestMap<
 	return requestMap as any
 }
 
-const t = <T>() => null as T
-
 const requestMap = defineRequestMap({
 	'GET /api/v3/user': {
 		response: {} as HabiticaUserResponse,
@@ -31,18 +29,27 @@ const requestMap = defineRequestMap({
 	'GET /api/v3/tasks/user': {
 		response: {} as HabiticaTasksResponse,
 	},
+	'POST /api/v3/tasks/user': {
+		body: {
+			text: {} as string,
+			type: {} as 'todo' | 'habit' | 'daily' | 'reward',
+			notes: {} as string | undefined,
+			priority: {} as '0.1' | '1' | '1.5' | '2' | undefined,
+		},
+		response: {} as HabiticaTasksResponse,
+	},
 	'GET /api/v3/user/webhook': {
 		response: {} as HabiticaWebhooksResponse,
 	},
 	'POST /api/v3/user/webhook': {
 		body: {
-			id: t<string | undefined>(),
-			url: t<string>(),
+			id: {} as string | undefined,
+			url: {} as string,
 		},
 	},
 	'PUT /api/v3/user/webhook/:id': {
 		body: {
-			enabled: t<boolean>(),
+			enabled: {} as boolean,
 		},
 	},
 	'DELETE /api/v3/user/webhook/:id': {
