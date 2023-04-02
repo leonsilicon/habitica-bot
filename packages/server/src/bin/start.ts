@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import path from 'node:path'
 
 import dayjs from 'dayjs'
@@ -15,10 +16,12 @@ import {
 } from 'discord.js'
 import dotenv from 'dotenv'
 import { fastify } from 'fastify'
+import fastifyRawBody from 'fastify-raw-body'
 import capitalize from 'just-capitalize'
 import { getProjectDir } from 'lion-utils'
 import schedule from 'node-schedule'
 import invariant from 'tiny-invariant'
+import { z } from 'zod'
 
 import * as slashCommandsExports from '~/commands/_commands.js'
 import { type SlashCommand } from '~/types/command.js'
@@ -32,6 +35,7 @@ import {
 	createTasksSummaryMessage,
 	isTaskPublic,
 } from '~/utils/tasks.js'
+import { gotHabitica } from '~/utils/habitica.js'
 
 const slashCommandsMap = Object.fromEntries(
 	Object.values(slashCommandsExports).map((slashCommandExport) => {
@@ -158,6 +162,13 @@ const app = fastify({
 	},
 })
 
+app.register(fastifyRawBody, {
+	field: 'rawBody',
+	encoding: false,
+	runFirst: true,
+	routes: ['/linear-webhook'],
+})
+
 const notificationsChannelId = '1061299980792496202'
 
 const rule = new schedule.RecurrenceRule()
@@ -196,10 +207,46 @@ schedule.scheduleJob(rule, async () => {
 	}
 })
 
-app.post('/linear-webhook', async (request) => {
+app.post('/linear-webhook', async (request, reply) => {
 	console.log('Linear Webhook called with:', request.body)
+
+	const {
+		data: { userId: linearUserId },
+	} = z.object({ data: z.object({ userId: z.string() }) }).parse(request.body)
+
+	const prisma = await getPrisma()
+	const { webhookSigningSecret, user } =
+		await prisma.linearIntegration.findUniqueOrThrow({
+			select: {
+				user: {
+					select: {
+						habiticaUserId: true,
+					}
+				},
+				webhookSigningSecret: true,
+			},
+			where: {
+				linearUserId,
+			},
+		})
+
+	const signature = crypto
+		.createHmac('sha256', webhookSigningSecret)
+		.update(request.rawBody!)
+		.digest('hex')
+
+	if (signature !== request.headers['linear-signature']) {
+		void reply.status(400)
+		return
+	}
+
 	const payload = request.body as any
-	await addHabiticaTask({ text: payload.data.body })
+	await gotHabitica('POST /api/v3/tasks/user', {
+		body: {
+
+		},
+		userId: payload.userId,
+	})
 })
 
 app.post('/webhook', async (request, reply) => {

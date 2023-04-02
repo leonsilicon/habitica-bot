@@ -4,8 +4,7 @@ import mem from 'mem'
 
 import { linearWebhookUrl } from '~/utils/webhook.js'
 
-// Api key authentication
-const getLinear = mem(
+export const getLinear = mem(
 	({ apiKey }: { apiKey: string }) =>
 		new LinearClient({
 			apiKey,
@@ -21,10 +20,18 @@ export async function getLinearTasks({ apiKey }: { apiKey: string }) {
 	return myIssues.nodes
 }
 
-export async function setLinearWebhook({ apiKey }: { apiKey: string }) {
+export async function createLinearWebhook({ apiKey }: { apiKey: string }) {
 	const linear = getLinear({ apiKey })
-	await linear.createWebhook({
+	const { webhook } = await linear.createWebhook({
+		id: 'habitica-linear',
 		url: linearWebhookUrl,
 		resourceTypes: ['ISSUE'],
 	})
+
+	return webhook
+}
+
+export async function deleteLinearWebhook({ apiKey }: { apiKey: string }) {
+	const linear = getLinear({ apiKey })
+	await linear.deleteWebhook('habitica-linear')
 }

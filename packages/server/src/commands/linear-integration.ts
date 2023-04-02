@@ -4,7 +4,12 @@ import invariant from 'tiny-invariant'
 
 import { defineSlashCommand } from '~/utils/command.js'
 import { gotHabitica } from '~/utils/habitica.js'
-import { getLinearTasks } from '~/utils/linear.js'
+import {
+	createLinearWebhook,
+	getLinear,
+	getLinearTasks,
+	setLinearWebhook,
+} from '~/utils/linear.js'
 import { getPrisma } from '~/utils/prisma.js'
 
 export const linearIntegrationCommand = defineSlashCommand({
@@ -41,6 +46,16 @@ export const linearIntegrationCommand = defineSlashCommand({
 				const prisma = await getPrisma()
 
 				try {
+					const webhook = await createLinearWebhook({
+						apiKey: linearApiKey,
+					})
+					if (webhook?.secret === undefined) {
+						throw new Error('Failed to create linear webhook')
+					}
+
+					const linear = getLinear({ apiKey: linearApiKey })
+					const linearUser = await linear.viewer
+
 					await prisma.integration.create({
 						data: {
 							user: {
@@ -51,11 +66,12 @@ export const linearIntegrationCommand = defineSlashCommand({
 							linearIntegration: {
 								create: {
 									apiKey: linearApiKey,
+									signingSecret: webhook.secret,
+									linearUserId: linearUser.id,
 								},
 							},
 						},
 					})
-
 					await interaction.reply({
 						ephemeral: true,
 						content: 'Linear integration successfully created!',
@@ -70,6 +86,8 @@ export const linearIntegrationCommand = defineSlashCommand({
 							ephemeral: true,
 							content: 'The Linear integration already exists.',
 						})
+					} else {
+						throw error
 					}
 				}
 
@@ -167,6 +185,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 									text: linearTask.title,
 									type: 'todo',
 									priority: '1',
+									notes: linearTask.description,
 								},
 							})
 						)

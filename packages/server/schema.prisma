@@ -56,5 +56,7 @@ model LinearIntegration {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
 
-  apiKey String
+  apiKey               String
+  webhookSigningSecret String
+  linearUserId         String @unique
 }
