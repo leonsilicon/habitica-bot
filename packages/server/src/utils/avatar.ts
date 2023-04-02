@@ -90,7 +90,7 @@ export async function updateHabiticaUserAvatar({
 					}
 
 					;(async () => {
-						const pngBuffer = (await page.screenshot({
+						const pngBuffer = await page.screenshot({
 							encoding: 'binary',
 							type: 'jpeg',
 							clip: {
@@ -99,7 +99,7 @@ export async function updateHabiticaUserAvatar({
 								width: rect.width,
 								height: rect.height,
 							},
-						})) as Buffer
+						})
 
 						const pixels = await new Promise<NdArray>((resolve, reject) => {
 							getPixels(pngBuffer, 'image/jpeg', (err, result) => {
@@ -134,7 +134,7 @@ export async function updateHabiticaUserAvatar({
 			invariant(gifBuffer !== null)
 			avatarBase64 = gifBuffer.toString('base64')
 		} else {
-			avatarBase64 = (await page.screenshot({
+			avatarBase64 = await page.screenshot({
 				encoding: 'base64',
 				type: 'jpeg',
 				clip: {
@@ -143,7 +143,7 @@ export async function updateHabiticaUserAvatar({
 					width: rect.width,
 					height: rect.height,
 				},
-			})) as string
+			})
 			console.info('Screenshotted avator!')
 		}
 
