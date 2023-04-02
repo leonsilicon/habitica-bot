@@ -18,8 +18,8 @@ model User {
   // Whether the user's tasks are public (default false)
   areTasksPublic Boolean @default(false)
 
-  integrations       Integration[]
-  linearIntegrations LinearIntegration[]
+  integrations      Integration[]
+  linearIntegration LinearIntegration?
 }
 
 model HabiticaUser {
@@ -53,7 +53,7 @@ model Integration {
 model LinearIntegration {
   integration Integration? @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
 
   apiKey String

@@ -1,26 +1,28 @@
 import { LinearClient } from '@linear/sdk'
-import onetime from 'onetime'
+import hashObject from 'hash-obj'
+import mem from 'mem'
 
 import { linearWebhookUrl } from '~/utils/webhook.js'
 
 // Api key authentication
-const getLinear = onetime(
-	() =>
+const getLinear = mem(
+	({ apiKey }: { apiKey: string }) =>
 		new LinearClient({
-			apiKey: process.env.LINEAR_API_KEY,
-		})
+			apiKey,
+		}),
+	{ cacheKey: hashObject }
 )
 
-export async function getLinearTasks() {
-	const linear = getLinear()
+export async function getLinearTasks({ apiKey }: { apiKey: string }) {
+	const linear = getLinear({ apiKey })
 	const me = await linear.viewer
 	const myIssues = await me.assignedIssues()
 
 	return myIssues.nodes
 }
 
-export async function setLinearWebhook() {
-	const linear = getLinear()
+export async function setLinearWebhook({ apiKey }: { apiKey: string }) {
+	const linear = getLinear({ apiKey })
 	await linear.createWebhook({
 		url: linearWebhookUrl,
 		resourceTypes: ['ISSUE'],

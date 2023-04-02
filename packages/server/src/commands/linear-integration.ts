@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { SlashCommandBuilder } from 'discord.js'
 import invariant from 'tiny-invariant'
 
@@ -38,20 +39,39 @@ export const linearIntegrationCommand = defineSlashCommand({
 				const linearApiKey = interaction.options.getString('linear_api_key')
 				invariant(linearApiKey !== null, 'not null')
 				const prisma = await getPrisma()
-				await prisma.integration.create({
-					data: {
-						user: {
-							connect: {
-								discordUserId: interaction.user.id,
+
+				try {
+					await prisma.integration.create({
+						data: {
+							user: {
+								connect: {
+									discordUserId: interaction.user.id,
+								},
+							},
+							linearIntegration: {
+								create: {
+									apiKey: linearApiKey,
+								},
 							},
 						},
-						linearIntegration: {
-							create: {
-								apiKey: linearApiKey,
-							},
-						},
-					},
-				})
+					})
+
+					await interaction.reply({
+						ephemeral: true,
+						content: 'Linear integration successfully created!',
+					})
+				} catch (error) {
+					if (
+						error instanceof Prisma.PrismaClientKnownRequestError && // P2022: Unique constraint failed
+						// Prisma error codes: https://www.prisma.io/docs/reference/api-reference/error-reference#error-codes
+						error.code === 'P2002'
+					) {
+						await interaction.reply({
+							ephemeral: true,
+							content: 'The Linear integration already exists.',
+						})
+					}
+				}
 
 				break
 			}
@@ -63,25 +83,56 @@ export const linearIntegrationCommand = defineSlashCommand({
 						userId: interaction.user.id,
 					},
 				})
+
+				await interaction.reply({
+					ephemeral: true,
+					content: 'Linear integration successfully removed!',
+				})
+
 				break
 			}
 
 			case 'sync-tasks': {
-				const linearTasks = await getLinearTasks()
 				const prisma = await getPrisma()
-				const { habiticaUser } = await prisma.user.findUniqueOrThrow({
-					select: {
-						habiticaUser: {
-							select: {
-								apiToken: true,
-								userId: true,
+				const { habiticaUser, linearIntegration } =
+					await prisma.user.findUniqueOrThrow({
+						select: {
+							habiticaUser: {
+								select: {
+									apiToken: true,
+									userId: true,
+								},
+							},
+							linearIntegration: {
+								select: {
+									apiKey: true,
+								},
 							},
 						},
-					},
-					where: {
-						id: interaction.user.id,
-					},
-				})
+						where: {
+							id: interaction.user.id,
+						},
+					})
+
+				if (linearIntegration === null) {
+					await interaction.reply({
+						ephemeral: true,
+						content:
+							'You do not have an existing linear integration. You can one with `/linear-integration create`',
+					})
+					return
+				}
+
+				if (habiticaUser === null) {
+					await interaction.reply({
+						ephemeral: true,
+						content:
+							'You do not have a linked Habitica account. You can link one by running `/link`',
+					})
+					return
+				}
+
+				const linearTasks = await getLinearTasks({ apiKey: linearIntegration.apiKey })
 
 				invariant(
 					habiticaUser !== null,
@@ -101,20 +152,32 @@ export const linearIntegrationCommand = defineSlashCommand({
 						)
 				)
 
-				// Add the new linear tasks to Habitica
-				await Promise.all(
-					newLinearTasks.map(async (linearTask) =>
-						gotHabitica('POST /api/v3/tasks/user', {
-							apiToken: habiticaUser.apiToken,
-							userId: habiticaUser.userId,
-							body: {
-								text: linearTask.title,
-								type: 'todo',
-								priority: '1',
-							},
-						})
+				if (newLinearTasks.length > 0) {
+					// Add the new linear tasks to Habitica
+					await Promise.all(
+						newLinearTasks.map(async (linearTask) =>
+							gotHabitica('POST /api/v3/tasks/user', {
+								apiToken: habiticaUser.apiToken,
+								userId: habiticaUser.userId,
+								body: {
+									text: linearTask.title,
+									type: 'todo',
+									priority: '1',
+								},
+							})
+						)
 					)
-				)
+
+					await interaction.reply({
+						ephemeral: true,
+						content: 'Linear tasks successfully synced with Habitica!',
+					})
+				} else {
+					await interaction.reply({
+						ephemeral: true,
+						content: 'Linear tasks are already synced with Habitica.',
+					})
+				}
 
 				break
 			}
