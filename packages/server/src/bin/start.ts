@@ -158,11 +158,10 @@ const app = fastify({
 	},
 })
 
-void app.register(fastifyRawBody, {
+await app.register(fastifyRawBody, {
 	field: 'rawBody',
+	global: false,
 	encoding: false,
-	runFirst: true,
-	routes: ['/linear-webhook'],
 })
 
 const notificationsChannelId = '1061299980792496202'
@@ -203,70 +202,71 @@ schedule.scheduleJob(rule, async () => {
 	}
 })
 
-app.post('/linear-webhook', async (request, reply) => {
-	console.log('Linear Webhook called with:', request.body)
-	const { userId } = z.object({ userId: z.string() }).parse(request.query)
+app.post('/linear-webhook', {
+	config: { rawBody: true },
+	async handler(request, reply) {
+		const { userId } = z.object({ userId: z.string() }).parse(request.query)
 
-	const prisma = await getPrisma()
-	const { linearIntegration, habiticaUser } =
-		await prisma.appUser.findUniqueOrThrow({
-			select: {
-				linearIntegration: {
-					select: {
-						webhookSigningSecret: true,
+		const prisma = await getPrisma()
+		const { linearIntegration, habiticaUser } =
+			await prisma.appUser.findUniqueOrThrow({
+				select: {
+					linearIntegration: {
+						select: {
+							webhookSigningSecret: true,
+						},
+					},
+					habiticaUser: {
+						select: {
+							apiToken: true,
+							id: true,
+						},
 					},
 				},
-				habiticaUser: {
-					select: {
-						apiToken: true,
-						id: true,
-					},
+				where: {
+					id: userId,
 				},
-			},
-			where: {
-				id: userId,
-			},
-		})
+			})
 
-	if (linearIntegration === null) {
-		return reply.status(400).send('User does not have a Linear integration')
-	}
+		if (linearIntegration === null) {
+			return reply.status(400).send('User does not have a Linear integration')
+		}
 
-	const signature = crypto
-		.createHmac('sha256', linearIntegration.webhookSigningSecret)
-		.update(request.rawBody!)
-		.digest('hex')
+		const signature = crypto
+			.createHmac('sha256', linearIntegration.webhookSigningSecret)
+			.update(request.rawBody!)
+			.digest('hex')
 
-	if (signature !== request.headers['linear-signature']) {
-		void reply.status(400)
-		return
-	}
+		if (signature !== request.headers['linear-signature']) {
+			void reply.status(400)
+			return
+		}
 
-	if (habiticaUser === null) {
-		return reply.status(400).send('User must have a habitica account.')
-	}
+		if (habiticaUser === null) {
+			return reply.status(400).send('User must have a habitica account.')
+		}
 
-	const { type, data } = z
-		.object({
-			type: z.string(),
-			data: z.object({ title: z.string(), description: z.string() }),
-		})
-		.parse(request.body)
+		const { type, data } = z
+			.object({
+				type: z.string(),
+				data: z.object({ title: z.string(), description: z.string() }),
+			})
+			.parse(request.body)
 
-	if (type === 'IssueCreated') {
-		await gotHabitica('POST /api/v3/tasks/user', {
-			body: {
-				text: data.title,
-				type: 'todo',
-				notes: data.description,
-			},
-			habiticaUser,
-		})
-	}
+		if (type === 'IssueCreated') {
+			await gotHabitica('POST /api/v3/tasks/user', {
+				body: {
+					text: data.title,
+					type: 'todo',
+					notes: data.description,
+				},
+				habiticaUser,
+			})
+		}
+	},
 })
 
-app.post('/webhook', async (request, reply) => {
-	console.log('Webhook called with:', request.body)
+app.post('/habitica-webhook', async (request, reply) => {
 	const data = request.body as HabiticaRequest
 	const { task } = data
 
@@ -291,7 +291,6 @@ app.post('/webhook', async (request, reply) => {
 			habiticaUserId: data.user._id,
 		},
 	})
-	console.info(`User ID: ${appUser.id}`)
 
 	if (appUser.habiticaUser === null) {
 		return

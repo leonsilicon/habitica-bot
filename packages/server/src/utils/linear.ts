@@ -33,7 +33,8 @@ export async function createLinearWebhook({
 	const { webhook } = await linear.createWebhook({
 		id: randomUUID(),
 		url: getLinearWebhookUrl({ appUserId }),
-		resourceTypes: ['ISSUE'],
+		resourceTypes: ['Issue'],
+		allPublicTeams: true
 	})
 
 	return webhook
