@@ -30,6 +30,9 @@ export const unlinkCommand = defineSlashCommand({
 
 		if (user.habiticaUser === null) {
 			invariant(interaction.channel !== null)
+			await interaction.reply({
+				content: 'You have successfully unlinked your Habitica account.',
+			})
 			await interaction.channel.send({
 				content: `<@${interaction.user.id}> successfully unlinked their Habitica account.`,
 			})

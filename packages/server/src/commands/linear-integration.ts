@@ -110,7 +110,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 							},
 						},
 						where: {
-							id: interaction.user.id,
+							discordUserId: interaction.user.id,
 						},
 					})
 
@@ -132,7 +132,9 @@ export const linearIntegrationCommand = defineSlashCommand({
 					return
 				}
 
-				const linearTasks = await getLinearTasks({ apiKey: linearIntegration.apiKey })
+				const linearTasks = await getLinearTasks({
+					apiKey: linearIntegration.apiKey,
+				})
 
 				invariant(
 					habiticaUser !== null,

@@ -44,7 +44,7 @@ model HabiticaUserAvatar {
 }
 
 model Integration {
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
 
   linearIntegration LinearIntegration?
