@@ -52,6 +52,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 		if (appUser === null) {
 			await interaction.reply({
 				content: 'You do not have a linked Habitica account.',
+				ephemeral: true,
 			})
 			return
 		}
