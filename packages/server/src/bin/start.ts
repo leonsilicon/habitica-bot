@@ -28,6 +28,7 @@ import { type SlashCommand } from '~/types/command.js'
 import { type HabiticaRequest } from '~/types/habitica.js'
 import { getDiscordClient } from '~/utils/discord.js'
 import { getHabiticaEmbedThumbnail } from '~/utils/embed.js'
+import { gotHabitica } from '~/utils/habitica.js'
 import { getPrisma } from '~/utils/prisma.js'
 import { getPuppeteerBrowser } from '~/utils/puppeteer.js'
 import {
@@ -35,7 +36,6 @@ import {
 	createTasksSummaryMessage,
 	isTaskPublic,
 } from '~/utils/tasks.js'
-import { gotHabitica } from '~/utils/habitica.js'
 
 const slashCommandsMap = Object.fromEntries(
 	Object.values(slashCommandsExports).map((slashCommandExport) => {
@@ -162,7 +162,7 @@ const app = fastify({
 	},
 })
 
-app.register(fastifyRawBody, {
+void app.register(fastifyRawBody, {
 	field: 'rawBody',
 	encoding: false,
 	runFirst: true,
@@ -221,7 +221,7 @@ app.post('/linear-webhook', async (request, reply) => {
 				user: {
 					select: {
 						habiticaUserId: true,
-					}
+					},
 				},
 				webhookSigningSecret: true,
 			},
@@ -240,13 +240,26 @@ app.post('/linear-webhook', async (request, reply) => {
 		return
 	}
 
-	const payload = request.body as any
-	await gotHabitica('POST /api/v3/tasks/user', {
-		body: {
+	invariant(user.habiticaUser !== null, 'user must have a habitica account')
 
-		},
-		userId: payload.userId,
-	})
+	const { type, data } = z
+		.object({
+			type: z.string(),
+			data: z.object({ title: z.string(), description: z.string() }),
+		})
+		.parse(request.body)
+
+	if (type === 'IssueCreated') {
+		await gotHabitica('POST /api/v3/tasks/user', {
+			body: {
+				text: data.title,
+				type: 'todo',
+				notes: data.description,
+			},
+			userId: user.habiticaUser.id,
+			apiToken: user.habiticaUser.apiToken,
+		})
+	}
 })
 
 app.post('/webhook', async (request, reply) => {
