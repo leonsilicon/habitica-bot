@@ -246,7 +246,7 @@ app.post('/linear-webhook', {
 			return reply.status(400).send('User must have a habitica account.')
 		}
 
-		const { type, data } = z
+		const { type, data: linearTask } = z
 			.object({
 				type: z.string(),
 				data: z.object({ title: z.string(), description: z.string() }),
@@ -256,9 +256,34 @@ app.post('/linear-webhook', {
 		if (type === 'IssueCreated') {
 			await gotHabitica('POST /api/v3/tasks/user', {
 				body: {
-					text: data.title,
+					text: linearTask.title,
 					type: 'todo',
-					notes: data.description,
+					notes: linearTask.description,
+				},
+				habiticaUser,
+			})
+		} else if (type === 'IssueUpdated') {
+			// Find the Habitica task with the same title
+			const todos = await gotHabitica('GET /api/v3/tasks/user', {
+				habiticaUser,
+				searchParams: {
+					type: 'todos',
+				},
+			})
+
+			const habiticaTodo = todos.find((todo) => todo.text === linearTask.title)
+
+			if (habiticaTodo === undefined) {
+				console.error(
+					`Could not find Habitica task with title: ${linearTask.title}`
+				)
+				return
+			}
+
+			await gotHabitica(`POST /api/v3/tasks/:taskId/score/:direction`, {
+				pathParams: {
+					taskId: habiticaTodo._id,
+					direction: 'up',
 				},
 				habiticaUser,
 			})

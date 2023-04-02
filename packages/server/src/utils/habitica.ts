@@ -41,6 +41,12 @@ const requestMap = defineRequestMap({
 		},
 		response: {} as HabiticaTasksResponse,
 	},
+	'POST /api/v3/tasks/:taskId/score/:direction': {
+		pathParams: {
+			taskId: true,
+			direction: true,
+		},
+	},
 	'POST /api/v3/tasks/user': {
 		body: {
 			text: {} as string,

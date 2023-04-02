@@ -51,6 +51,7 @@ jobs:
       - name: Executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@master
         with:
+          command_timeout: 30m
           host: '44.204.114.214'
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
