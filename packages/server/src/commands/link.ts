@@ -39,7 +39,7 @@ export const linkCommand = defineSlashCommand({
 			userId: habiticaUserId,
 		})
 		const prisma = await getPrisma()
-		await prisma.user.create({
+		await prisma.appUser.create({
 			data: {
 				id: nanoid(),
 				habiticaUser: {

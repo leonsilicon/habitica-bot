@@ -113,7 +113,7 @@ export const linearIntegrationCommand = defineSlashCommand({
 			case 'sync-tasks': {
 				const prisma = await getPrisma()
 				const { habiticaUser, linearIntegration } =
-					await prisma.user.findUniqueOrThrow({
+					await prisma.appUser.findUniqueOrThrow({
 						select: {
 							habiticaUser: {
 								select: {

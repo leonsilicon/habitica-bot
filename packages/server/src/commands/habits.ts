@@ -22,7 +22,7 @@ export const habitsCommand = defineSlashCommand({
 		invariant(discordUser !== null)
 
 		const prisma = await getPrisma()
-		const user = await prisma.user.findFirstOrThrow({
+		const appUser = await prisma.appUser.findFirstOrThrow({
 			select: {
 				id: true,
 				areTasksPublic: true,
@@ -32,13 +32,13 @@ export const habitsCommand = defineSlashCommand({
 			},
 		})
 
-		if (!user.areTasksPublic) {
+		if (!appUser.areTasksPublic) {
 			throw new Error('User has set their tasks to private.')
 		}
 
 		await interaction.reply(
 			await createTasksSummaryMessage({
-				userId: user.id,
+				appUserId: appUser.id,
 				taskType: 'habit',
 			})
 		)

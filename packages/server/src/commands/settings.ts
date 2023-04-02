@@ -26,7 +26,7 @@ export const settingsCommand = defineSlashCommand({
 			const value = interaction.options.getBoolean('new_value')
 			invariant(value !== null)
 			const prisma = await getPrisma()
-			await prisma.user.update({
+			await prisma.appUser.update({
 				data: {
 					areTasksPublic: value,
 				},

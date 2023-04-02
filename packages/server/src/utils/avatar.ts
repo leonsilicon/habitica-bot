@@ -184,7 +184,7 @@ export async function getHabiticaUserAvatarWithFallback({
 	discordUserId: string
 }): Promise<{ isAnimated: boolean; data: Buffer } | { url: string }> {
 	const prisma = await getPrisma()
-	const { habiticaUser } = await prisma.user.findUniqueOrThrow({
+	const { habiticaUser } = await prisma.appUser.findUniqueOrThrow({
 		select: {
 			habiticaUser: {
 				select: {

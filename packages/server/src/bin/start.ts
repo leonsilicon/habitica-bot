@@ -181,7 +181,7 @@ schedule.scheduleJob(rule, async () => {
 		// Get all users who have public tasks set to true
 
 		const prisma = await getPrisma()
-		const users = await prisma.user.findMany({
+		const appUsers = await prisma.appUser.findMany({
 			select: {
 				id: true,
 			},
@@ -191,10 +191,10 @@ schedule.scheduleJob(rule, async () => {
 		})
 
 		await Promise.all(
-			users.map(async (user) => {
+			appUsers.map(async (appUser) => {
 				await channel.send(
 					await createTasksSummaryMessage({
-						userId: user.id,
+						appUserId: appUser.id,
 						taskType: 'daily',
 					})
 				)
@@ -209,7 +209,7 @@ app.post('/linear-webhook', async (request, reply) => {
 
 	const prisma = await getPrisma()
 	const { linearIntegration, habiticaUser } =
-		await prisma.user.findUniqueOrThrow({
+		await prisma.appUser.findUniqueOrThrow({
 			select: {
 				linearIntegration: {
 					select: {
@@ -260,8 +260,7 @@ app.post('/linear-webhook', async (request, reply) => {
 				type: 'todo',
 				notes: data.description,
 			},
-			userId: habiticaUser.id,
-			apiToken: habiticaUser.apiToken,
+			habiticaUser,
 		})
 	}
 })
@@ -276,7 +275,7 @@ app.post('/webhook', async (request, reply) => {
 	}
 
 	const prisma = await getPrisma()
-	const user = await prisma.user.findUniqueOrThrow({
+	const appUser = await prisma.appUser.findUniqueOrThrow({
 		select: {
 			id: true,
 			discordUserId: true,
@@ -292,9 +291,9 @@ app.post('/webhook', async (request, reply) => {
 			habiticaUserId: data.user._id,
 		},
 	})
-	console.info(`User ID: ${user.id}`)
+	console.info(`User ID: ${appUser.id}`)
 
-	if (user.habiticaUser === null) {
+	if (appUser.habiticaUser === null) {
 		return
 	}
 
@@ -313,7 +312,7 @@ app.post('/webhook', async (request, reply) => {
 	const fields: Array<{ name: string; value: string }> = [
 		{
 			name: 'User',
-			value: user.habiticaUser.name,
+			value: appUser.habiticaUser.name,
 		},
 		{
 			name: 'Task Name',
@@ -341,7 +340,7 @@ app.post('/webhook', async (request, reply) => {
 	}
 
 	const { files, thumbnail } = await getHabiticaEmbedThumbnail({
-		discordUserId: user.discordUserId,
+		discordUserId: appUser.discordUserId,
 	})
 
 	const embed = new EmbedBuilder()
@@ -366,7 +365,7 @@ app.post('/webhook', async (request, reply) => {
 		console.info('Sending proof message...')
 		await notificationsChannel.send({
 			embeds: [embed],
-			content: `<@${user.discordUserId}>, please send proof of completion for your task _${task.text}_ (${proofDescription})`,
+			content: `<@${appUser.discordUserId}>, please send proof of completion for your task _${task.text}_ (${proofDescription})`,
 		})
 	} else {
 		console.info('Sending embed...')

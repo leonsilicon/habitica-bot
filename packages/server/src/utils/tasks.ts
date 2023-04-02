@@ -1,5 +1,4 @@
 import { type BaseMessageOptions, EmbedBuilder } from 'discord.js'
-import got from 'got'
 import pluralize from 'pluralize'
 import invariant from 'tiny-invariant'
 
@@ -12,9 +11,9 @@ export function isTaskPublic(task: { notes: string }) {
 	return !notes.includes('hidden') && !notes.includes('private')
 }
 
-export async function getPublicTasks({ userId }: { userId: string }) {
+export async function getPublicTasks({ appUserId }: { appUserId: string }) {
 	const prisma = await getPrisma()
-	const user = await prisma.user.findUniqueOrThrow({
+	const { habiticaUser } = await prisma.appUser.findUniqueOrThrow({
 		select: {
 			habiticaUser: {
 				select: {
@@ -24,16 +23,17 @@ export async function getPublicTasks({ userId }: { userId: string }) {
 			},
 		},
 		where: {
-			id: userId,
+			id: appUserId,
 		},
 	})
-	if (user.habiticaUser === null) {
+
+	if (habiticaUser === null) {
 		throw new Error('User not linked to habitica account')
 	}
 
 	const allTasks = await gotHabitica('GET /api/v3/tasks/user', {
-		apiToken: user.habiticaUser.apiToken,
-		userId: user.habiticaUser.id,
+		habiticaUser,
+		searchParams: {},
 	})
 	const publicTasks = allTasks.filter((task) => isTaskPublic(task))
 
@@ -41,14 +41,14 @@ export async function getPublicTasks({ userId }: { userId: string }) {
 }
 
 export async function createTasksSummaryMessage({
-	userId,
+	appUserId,
 	taskType,
 }: {
-	userId: string
+	appUserId: string
 	taskType: 'habit' | 'todo' | 'daily'
 }): Promise<BaseMessageOptions> {
 	const prisma = await getPrisma()
-	const user = await prisma.user.findFirstOrThrow({
+	const appUser = await prisma.appUser.findFirstOrThrow({
 		select: {
 			habiticaUser: {
 				select: {
@@ -61,14 +61,14 @@ export async function createTasksSummaryMessage({
 			discordUserId: true,
 		},
 		where: {
-			id: userId,
+			id: appUserId,
 		},
 	})
 
-	invariant(user.habiticaUser !== null)
+	invariant(appUser.habiticaUser !== null)
 
 	const publicTasks = await getPublicTasks({
-		userId,
+		appUserId,
 	})
 
 	const tasksSummary = publicTasks
@@ -88,15 +88,15 @@ export async function createTasksSummaryMessage({
 		.join('\n')
 
 	const { files, thumbnail } = await getHabiticaEmbedThumbnail({
-		discordUserId: user.discordUserId,
+		discordUserId: appUser.discordUserId,
 	})
 
 	return {
 		embeds: [
 			new EmbedBuilder()
 				.setTitle(
-					`Viewing ${pluralize(taskType)} of ${user.habiticaUser.name} (@${
-						user.habiticaUser.username
+					`Viewing ${pluralize(taskType)} of ${appUser.habiticaUser.name} (@${
+						appUser.habiticaUser.username
 					})`
 				)
 				.setThumbnail(thumbnail)

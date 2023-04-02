@@ -31,7 +31,13 @@ const requestMap = defineRequestMap({
 	},
 	'GET /api/v3/tasks/user': {
 		searchParams: {
-			type: {} as 'habits' | 'dailys' | 'todos' | 'rewards' | 'completedTodos',
+			type: {} as
+				| 'habits'
+				| 'dailys'
+				| 'todos'
+				| 'rewards'
+				| 'completedTodos'
+				| undefined,
 		},
 		response: {} as HabiticaTasksResponse,
 	},
@@ -70,8 +76,10 @@ type RequestMap = typeof requestMap
 export async function gotHabitica<Request extends keyof RequestMap>(
 	request: Request,
 	options: {
-		userId: string
-		apiToken: string
+		habiticaUser: {
+			id: string
+			apiToken: string
+		}
 	} & (RequestMap[Request] extends { pathParams: any }
 		? { pathParams: Record<keyof RequestMap[Request]['pathParams'], string> }
 		: {}) &
@@ -106,8 +114,8 @@ export async function gotHabitica<Request extends keyof RequestMap>(
 		body: 'body' in options ? JSON.stringify(options.body) : undefined,
 		headers: {
 			'Content-Type': 'application/json',
-			'x-api-user': options.userId,
-			'x-api-key': options.apiToken,
+			'x-api-user': options.habiticaUser.id,
+			'x-api-key': options.habiticaUser.apiToken,
 			'x-client': `${env('HABITICA_USER_ID')}-HabiticaBot`,
 		},
 	})
