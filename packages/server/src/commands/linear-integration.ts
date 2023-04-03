@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { SlashCommandBuilder } from 'discord.js'
+import pFilter from 'p-filter'
 import invariant from 'tiny-invariant'
 
 import { defineSlashCommand } from '~/utils/command.js'
@@ -169,9 +170,14 @@ export const linearIntegrationCommand = defineSlashCommand({
 					return
 				}
 
-				const linearTasks = await getLinearTasks({
+				const allLinearTasks = await getLinearTasks({
 					apiKey: linearIntegration.apiKey,
 				})
+
+				const undoneLinearTasks = await pFilter(
+					allLinearTasks,
+					async (task) => (await task.state)?.name !== 'Done'
+				)
 
 				await interaction.deferReply({
 					ephemeral: true,
@@ -185,10 +191,10 @@ export const linearIntegrationCommand = defineSlashCommand({
 				})
 
 				// Retrieve all the linear tasks that haven't been added to Habitica yet
-				const newLinearTasks = linearTasks.filter(
-					(linearTask) =>
+				const newLinearTasks = undoneLinearTasks.filter(
+					(undoneLinearTask) =>
 						!habiticaTasks.some(
-							(habiticaTask) => habiticaTask.text === linearTask.title
+							(habiticaTask) => habiticaTask.text === undoneLinearTask.title
 						)
 				)
 

@@ -40,6 +40,7 @@
 		"node-schedule": "^2.1.1",
 		"onetime": "^6.0.0",
 		"outdent": "^0.8.0",
+		"p-filter": "^3.0.0",
 		"pino-pretty": "^10.0.0",
 		"pluralize": "^8.0.0",
 		"png-js": "^1.0.0",
