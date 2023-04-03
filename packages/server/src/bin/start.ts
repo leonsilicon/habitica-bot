@@ -246,14 +246,27 @@ app.post('/linear-webhook', {
 			return reply.status(400).send('User must have a habitica account.')
 		}
 
-		const { type, data: linearTask } = z
+		const {
+			action,
+			type,
+			data: linearTask,
+		} = z
 			.object({
+				action: z.string(),
 				type: z.string(),
-				data: z.object({ title: z.string(), description: z.string() }),
+				data: z.object({
+					state: z.object({ name: z.string() }),
+					title: z.string(),
+					description: z.string(),
+				}),
 			})
 			.parse(request.body)
 
-		if (type === 'IssueCreated') {
+		if (type !== 'Issue') {
+			return
+		}
+
+		if (action === 'create') {
 			await gotHabitica('POST /api/v3/tasks/user', {
 				body: {
 					text: linearTask.title,
@@ -262,31 +275,63 @@ app.post('/linear-webhook', {
 				},
 				habiticaUser,
 			})
-		} else if (type === 'IssueUpdated') {
-			// Find the Habitica task with the same title
-			const todos = await gotHabitica('GET /api/v3/tasks/user', {
-				habiticaUser,
-				searchParams: {
-					type: 'todos',
-				},
-			})
+		} else if (action === 'update') {
+			if (linearTask.state.name === 'Done') {
+				// Find the Habitica task with the same title
+				const todos = await gotHabitica('GET /api/v3/tasks/user', {
+					habiticaUser,
+					searchParams: {
+						type: 'todos',
+					},
+				})
 
-			const habiticaTodo = todos.find((todo) => todo.text === linearTask.title)
-
-			if (habiticaTodo === undefined) {
-				console.error(
-					`Could not find Habitica task with title: ${linearTask.title}`
+				const habiticaTodo = todos.find(
+					(todo) => todo.text === linearTask.title
 				)
-				return
-			}
 
-			await gotHabitica(`POST /api/v3/tasks/:taskId/score/:direction`, {
-				pathParams: {
-					taskId: habiticaTodo._id,
-					direction: 'up',
-				},
-				habiticaUser,
-			})
+				if (habiticaTodo === undefined) {
+					return reply
+						.status(400)
+						.send(
+							`Could not find Habitica task with title: ${linearTask.title}`
+						)
+				}
+
+				await gotHabitica(`POST /api/v3/tasks/:taskId/score/:direction`, {
+					pathParams: {
+						taskId: habiticaTodo._id,
+						direction: 'up',
+					},
+					habiticaUser,
+				})
+			} else {
+				const completedTodos = await gotHabitica('GET /api/v3/tasks/user', {
+					habiticaUser,
+					searchParams: {
+						type: 'completedTodos',
+					},
+				})
+
+				const habiticaTodo = completedTodos.find(
+					(completedTodo) => completedTodo.text === linearTask.title
+				)
+
+				if (habiticaTodo === undefined) {
+					return reply
+						.status(400)
+						.send(
+							`Could not find Habitica task with title: ${linearTask.title}`
+						)
+				}
+
+				await gotHabitica(`POST /api/v3/tasks/:taskId/score/:direction`, {
+					pathParams: {
+						taskId: habiticaTodo._id,
+						direction: 'down',
+					},
+					habiticaUser,
+				})
+			}
 		}
 	},
 })
